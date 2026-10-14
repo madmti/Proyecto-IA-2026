@@ -23,7 +23,7 @@ DEPS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.d,$(PROGRAMAS_SRC) $(COMUNES_SR
 PREPROCESADO_STAMP := $(DATA_PREPROCESADO)/.generado
 IMAGENES_ORIGINALES := $(wildcard $(DATA_ORIGINAL)/*.jpg $(DATA_ORIGINAL)/*.jpeg)
 
-.PHONY: all programas preprocesado clean clean-datos distclean help
+.PHONY: all programas preprocesado run clean clean-datos distclean help
 .SECONDARY: $(PROGRAMAS_OBJ)
 
 all: programas preprocesado
@@ -45,6 +45,10 @@ $(PREPROCESADO_STAMP): $(SRC_DIR)/preprocesar.cpp $(IMAGENES_ORIGINALES) | $(BIN
 	./$(BIN_DIR)/preprocesar $(DATA_ORIGINAL) $(DATA_PREPROCESADO) $(SEMILLA)
 	@touch $@
 
+# Compila y ejecuta main.
+run: $(BIN_DIR)/main preprocesado
+	@./$(BIN_DIR)/main
+
 clean:
 	$(RM) -r $(OBJ_DIR) $(BIN_DIR)
 
@@ -57,6 +61,7 @@ help:
 	@echo "make                Compila y genera las instancias"
 	@echo "make programas      Solo compila"
 	@echo "make preprocesado   Solo genera las instancias"
+	@echo "make run            Compila y ejecuta main"
 	@echo "make clean          Elimina lo compilado"
 	@echo "make clean-datos    Elimina las instancias generadas"
 	@echo "make distclean      clean + clean-datos"
