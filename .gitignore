@@ -1,6 +1,10 @@
-# generated
-preprocesar
-segmentar
-dataset_preprocesado/
+# Datos generados
+data/*
+!data/original
 
+# Enunciado
 en/
+
+# Compilados
+build/*
+!build/.gitkeep
