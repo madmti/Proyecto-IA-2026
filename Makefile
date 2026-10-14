@@ -1,6 +1,7 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -pedantic
-OPENCV = $(shell pkg-config --cflags --libs opencv4)
+OPENCV_PKG := $(shell pkg-config --exists opencv5 && echo opencv5 || echo opencv4)
+OPENCV = $(shell pkg-config --cflags $(OPENCV_PKG)) -lopencv_core -lopencv_imgproc -lopencv_imgcodecs
 
 .PHONY: all clean
 
