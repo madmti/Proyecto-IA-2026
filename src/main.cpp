@@ -12,11 +12,13 @@
 using namespace std;
 
 const char *const CARPETA_INSTANCIAS = "data/preprocesado/instancias";
+const char *const CARPETA_SOLUCIONES = "data/resultados/soluciones";
 const unsigned int SEMILLA = 42;
 
 // Resuelve una instancia especifica
 mri::Resultado resolver(const mri::Instancia &instancia, unsigned int semilla) {
   mri::Resultado resultado;
+  resultado.semilla = semilla;
 
   const auto tabla = mri::prepararOtsu(instancia.histograma, instancia.N);
 
@@ -46,9 +48,16 @@ int main() {
   cout << "[i] Cargadas " << instancias.size() << " instancias desde "
        << CARPETA_INSTANCIAS << "\n";
 
-  for (const auto &instancia : instancias) {
-    const auto resultado = resolver(instancia, SEMILLA);
-    mri::escribirResultado(instancia, resultado);
+  try {
+    for (const auto &instancia : instancias) {
+      const auto resultado = resolver(instancia, SEMILLA);
+      mri::imprimirResultado(instancia, resultado);
+      mri::guardarResultado(instancia, resultado, CARPETA_SOLUCIONES);
+    }
+  } catch (const exception &e) {
+    cerr << "[e] error guardando solucion: " << e.what() << "\n";
+    return 1;
   }
+  cout << "[i] Soluciones guardadas en " << CARPETA_SOLUCIONES << "\n";
   return 0;
 }

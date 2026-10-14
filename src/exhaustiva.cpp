@@ -10,6 +10,7 @@
 using namespace std;
 
 const char *const CARPETA_INSTANCIAS = "data/preprocesado/instancias";
+const char *const CARPETA_OPTIMOS = "data/resultados/optimos";
 
 // Calcula el optimo global de una instancia.
 mri::Optimo resolver(const mri::Instancia &instancia) {
@@ -28,9 +29,16 @@ int main() {
   cout << "[i] Cargadas " << instancias.size() << " instancias desde "
        << CARPETA_INSTANCIAS << "\n";
 
-  for (const auto &instancia : instancias) {
-    const auto optimo = resolver(instancia);
-    mri::escribirOptimo(instancia, optimo);
+  try {
+    for (const auto &instancia : instancias) {
+      const auto optimo = resolver(instancia);
+      mri::imprimirOptimo(instancia, optimo);
+      mri::guardarOptimo(instancia, optimo, CARPETA_OPTIMOS);
+    }
+  } catch (const exception &e) {
+    cerr << "[e] error guardando optimo: " << e.what() << "\n";
+    return 1;
   }
+  cout << "[i] Optimos guardados en " << CARPETA_OPTIMOS << "\n";
   return 0;
 }
