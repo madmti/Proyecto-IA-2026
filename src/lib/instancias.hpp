@@ -34,4 +34,7 @@ void validarInstancia(const Instancia &instancia);
 std::vector<std::filesystem::path>
 listarInstancias(const std::filesystem::path &carpeta);
 
+// Lee todas las instancias de una carpeta (listarInstancias + leerInstancia).
+std::vector<Instancia> cargarInstancias(const std::filesystem::path &carpeta);
+
 } // namespace mri

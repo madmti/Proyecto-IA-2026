@@ -1,5 +1,6 @@
 #pragma once
 
+#include "algo_exh.hpp"
 #include "instancias.hpp"
 
 #include <vector>
@@ -17,5 +18,8 @@ struct Resultado {
 
 // Escribe el resultado de una instancia (umbrales, f y tiempo).
 void escribirResultado(const Instancia &instancia, const Resultado &resultado);
+
+// Escribe el optimo global de una instancia (umbrales, f y tiempo).
+void escribirOptimo(const Instancia &instancia, const Optimo &optimo);
 
 } // namespace mri

@@ -14,13 +14,6 @@ using namespace std;
 const char *const CARPETA_INSTANCIAS = "data/preprocesado/instancias";
 const unsigned int SEMILLA = 42;
 
-vector<mri::Instancia> cargarInstancias(const char *carpeta) {
-  vector<mri::Instancia> instancias;
-  for (const auto &ruta : mri::listarInstancias(carpeta))
-    instancias.push_back(mri::leerInstancia(ruta));
-  return instancias;
-}
-
 // Resuelve una instancia especifica
 mri::Resultado resolver(const mri::Instancia &instancia, unsigned int semilla) {
   mri::Resultado resultado;
@@ -45,7 +38,7 @@ mri::Resultado resolver(const mri::Instancia &instancia, unsigned int semilla) {
 int main() {
   vector<mri::Instancia> instancias;
   try {
-    instancias = cargarInstancias(CARPETA_INSTANCIAS);
+    instancias = mri::cargarInstancias(CARPETA_INSTANCIAS);
   } catch (const exception &e) {
     cerr << "[e] error leyendo instancia: " << e.what() << "\n";
     return 1;

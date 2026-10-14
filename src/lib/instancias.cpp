@@ -115,4 +115,11 @@ vector<filesystem::path> listarInstancias(const filesystem::path &carpeta) {
   return rutas;
 }
 
+vector<Instancia> cargarInstancias(const filesystem::path &carpeta) {
+  vector<Instancia> instancias;
+  for (const auto &ruta : listarInstancias(carpeta))
+    instancias.push_back(leerInstancia(ruta));
+  return instancias;
+}
+
 } // namespace mri

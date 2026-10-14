@@ -34,4 +34,7 @@ void escribirResultado(const Instancia &instancia, const Resultado &resultado) {
        << setprecision(3) << resultado.segundos << " s\n";
 }
 
+// TODO: escribir umbrales, f y tiempo del optimo.
+void escribirOptimo(const Instancia &, const Optimo &) {}
+
 } // namespace mri
