@@ -23,7 +23,7 @@ DEPS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.d,$(PROGRAMAS_SRC) $(COMUNES_SR
 PREPROCESADO_STAMP := $(DATA_PREPROCESADO)/.generado
 IMAGENES_ORIGINALES := $(wildcard $(DATA_ORIGINAL)/*.jpg $(DATA_ORIGINAL)/*.jpeg)
 
-.PHONY: all programas preprocesado clean clean-datos distclean
+.PHONY: all programas preprocesado clean clean-datos distclean help
 .SECONDARY: $(PROGRAMAS_OBJ)
 
 all: programas preprocesado
@@ -52,5 +52,14 @@ clean-datos:
 	$(RM) -r $(DATA_PREPROCESADO)/imagenes $(DATA_PREPROCESADO)/instancias $(PREPROCESADO_STAMP)
 
 distclean: clean clean-datos
+
+help:
+	@echo "make                Compila y genera las instancias"
+	@echo "make programas      Solo compila"
+	@echo "make preprocesado   Solo genera las instancias"
+	@echo "make clean          Elimina lo compilado"
+	@echo "make clean-datos    Elimina las instancias generadas"
+	@echo "make distclean      clean + clean-datos"
+	@echo "make help           Muestra esta ayuda"
 
 -include $(DEPS)
