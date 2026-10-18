@@ -23,11 +23,11 @@ algo::Optimo resolver(const io::Instancia &instancia) {
 	const auto tabla = otsu::prepararOtsu(instancia.histograma, instancia.N);
 	const auto inicio = chrono::steady_clock::now();
 
-	optimo.umbrales = algo::buscarOptimoExhaustivo(instancia, tabla);
+	optimo.soluciones = algo::buscarOptimoExhaustivo(instancia, tabla);
 
 	optimo.segundos = segundosDesde(inicio);
 
-	optimo.f = otsu::funObj(optimo.umbrales, tabla);
+	optimo.f = otsu::funObj(optimo.soluciones.front(), tabla);
 	return optimo;
 }
 

@@ -4,20 +4,23 @@
 
 namespace algo {
 
+constexpr double EPS_EMPATE = 1e-12;
+
 void backtracking(std::vector<int> umbrales, int next, double facc, int k,
 				  const otsu::TablaOtsu &tabla,
 				  std::vector<std::vector<int>> &sols, double &maxf) {
 	umbrales.push_back(next);
 	int size = static_cast<int>(umbrales.size());
 	if (size >= k + 1) {
-		facc += otsu::fTerm(tabla, umbrales.back(), 255);
-		if (facc > maxf) {
+		facc += otsu::fTerm(tabla, umbrales.back(), 256);
+		double diff = facc - maxf;
+		if (diff > EPS_EMPATE) {
 			umbrales.erase(umbrales.begin());
 			sols = {umbrales};
-		} else if (facc == maxf) {
+			maxf = facc;
+		} else if (std::abs(diff) <= EPS_EMPATE) {
 			umbrales.erase(umbrales.begin());
 			sols.push_back(umbrales);
-			maxf = facc;
 		}
 		return;
 	}
@@ -29,13 +32,14 @@ void backtracking(std::vector<int> umbrales, int next, double facc, int k,
 	}
 };
 
-std::vector<int> buscarOptimoExhaustivo(const io::Instancia &instancia,
-										const otsu::TablaOtsu &tabla) {
+std::vector<std::vector<int>>
+buscarOptimoExhaustivo(const io::Instancia &instancia,
+					   const otsu::TablaOtsu &tabla) {
 
 	std::vector<std::vector<int>> soluciones;
-	double maxf = 0.0;
+	double maxf = -1.0;
 	backtracking({}, 0, 0.0, instancia.k, tabla, soluciones, maxf);
-	return soluciones.back();
+	return soluciones;
 }
 
 } // namespace algo

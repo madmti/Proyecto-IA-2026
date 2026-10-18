@@ -65,10 +65,11 @@ void imprimirResultado(const Instancia &instancia, const Resultado &resultado) {
 void imprimirOptimo(const Instancia &instancia, const algo::Optimo &optimo) {
 	cout << "[i] " << instancia.ruta.filename().string()
 		 << " (k=" << instancia.k << ")\n"
-		 << fixed << setprecision(4)
-		 << "    optimo   t=" << formatearUmbrales(optimo.umbrales)
-		 << "  f=" << optimo.f << "  " << setprecision(3) << optimo.segundos
-		 << " s\n";
+		 << fixed << setprecision(4) << "    optimo   f=" << optimo.f << "  "
+		 << optimo.soluciones.size() << " solucion(es)  " << setprecision(3)
+		 << optimo.segundos << " s\n";
+	for (const auto &umbrales : optimo.soluciones)
+		cout << "             t=" << formatearUmbrales(umbrales) << "\n";
 }
 
 filesystem::path guardarResultado(const Instancia &instancia,
@@ -100,8 +101,10 @@ filesystem::path guardarOptimo(const Instancia &instancia,
 			   << "imagen " << instancia.imagen << "\n"
 			   << "k " << instancia.k << "\n"
 			   << setprecision(10) << "f_optimo " << optimo.f << "\n"
-			   << "umbrales " << listarUmbrales(optimo.umbrales) << "\n"
-			   << setprecision(6) << "segundos " << optimo.segundos << "\n";
+			   << "n_optimos " << optimo.soluciones.size() << "\n";
+		for (const auto &umbrales : optimo.soluciones)
+			salida << "umbrales " << listarUmbrales(umbrales) << "\n";
+		salida << setprecision(6) << "segundos " << optimo.segundos << "\n";
 	});
 }
 
