@@ -8,3 +8,7 @@ en/
 # Compilados
 build/*
 !build/.gitkeep
+
+# clangd
+.cache/
+compile_commands.json
