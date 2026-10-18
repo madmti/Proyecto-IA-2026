@@ -15,6 +15,27 @@ const char *const CARPETA_INSTANCIAS = "data/preprocesado/instancias";
 const char *const CARPETA_SOLUCIONES = "data/resultados/soluciones";
 const unsigned int SEMILLA = 42;
 
+// Verifica las restricciones sobre los umbrales con assert
+void assertRestricciones(const std::vector<int> &umbrales) {
+	assert((umbrales.size() == 2 || umbrales.size() == 4 ||
+			umbrales.size() == 6) &&
+		   "Solo se aceptan 2, 4 o 6 umbrales");
+	assert(umbrales.front() > 0 && "El primer umbral debe ser > 0");
+	assert(umbrales.back() < 255 && "El ultimo umbral debe ser < 255");
+	auto check_order = [&umbrales]() -> bool {
+		int last = 0;
+		for (const int &um : umbrales) {
+			if (last >= um)
+				return false;
+			last = um;
+		}
+		return true;
+	};
+	assert(check_order() &&
+		   "Los umbrales deben estar ordenados ascendentemente y deben ser "
+		   "distintos entre ellos");
+}
+
 // Resuelve una instancia especifica
 mri::Resultado resolver(const mri::Instancia &instancia, unsigned int semilla) {
 	mri::Resultado resultado;
@@ -25,9 +46,11 @@ mri::Resultado resolver(const mri::Instancia &instancia, unsigned int semilla) {
 	const auto inicio = chrono::steady_clock::now();
 
 	resultado.inicial = mri::generarSolucionInicial(instancia, tabla, semilla);
+	assertRestricciones(resultado.inicial);
 	resultado.fInicial = mri::funObj(resultado.inicial, tabla);
 
 	resultado.final = mri::repararSolucion(resultado.inicial, tabla, semilla);
+	assertRestricciones(resultado.final);
 	resultado.fFinal = mri::funObj(resultado.final, tabla);
 
 	const chrono::duration<double> transcurrido =
