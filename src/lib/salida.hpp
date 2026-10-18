@@ -15,7 +15,8 @@ struct Resultado {
 	double fInicial = 0.0;
 	std::vector<int> final;
 	double fFinal = 0.0;
-	double segundos = 0.0;
+	double msInicial = 0.0;	   // Milisegundos de generar la solucion inicial.
+	double msReparacion = 0.0; // Milisegundos de repararla.
 };
 
 // Imprime por consola el resultado de una instancia (umbrales, f y tiempo).

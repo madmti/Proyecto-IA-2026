@@ -12,10 +12,23 @@ using namespace std;
 const char *const CARPETA_INSTANCIAS = "data/preprocesado/instancias";
 const char *const CARPETA_OPTIMOS = "data/resultados/optimos";
 
+static double segundosDesde(chrono::steady_clock::time_point inicio) {
+	return chrono::duration<double>(chrono::steady_clock::now() - inicio)
+		.count();
+}
+
 // Calcula el optimo global de una instancia.
 algo::Optimo resolver(const io::Instancia &instancia) {
+	algo::Optimo optimo;
 	const auto tabla = otsu::prepararOtsu(instancia.histograma, instancia.N);
-	return algo::buscarOptimoExhaustivo(instancia, tabla);
+	const auto inicio = chrono::steady_clock::now();
+
+	optimo.umbrales = algo::buscarOptimoExhaustivo(instancia, tabla);
+
+	optimo.segundos = segundosDesde(inicio);
+
+	optimo.f = otsu::funObj(optimo.umbrales, tabla);
+	return optimo;
 }
 
 int main() {
@@ -31,6 +44,8 @@ int main() {
 
 	try {
 		for (const auto &instancia : instancias) {
+			if (instancia.k > 4)
+				continue;
 			const auto optimo = resolver(instancia);
 			io::imprimirOptimo(instancia, optimo);
 			io::guardarOptimo(instancia, optimo, CARPETA_OPTIMOS);

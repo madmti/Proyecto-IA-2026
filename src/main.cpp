@@ -36,6 +36,11 @@ void assertRestricciones(const std::vector<int> &umbrales) {
 		   "distintos entre ellos");
 }
 
+static double msDesde(chrono::steady_clock::time_point inicio) {
+	return chrono::duration<double, milli>(chrono::steady_clock::now() - inicio)
+		.count();
+}
+
 // Resuelve una instancia especifica
 io::Resultado resolver(const io::Instancia &instancia, unsigned int semilla) {
 	io::Resultado resultado;
@@ -43,19 +48,22 @@ io::Resultado resolver(const io::Instancia &instancia, unsigned int semilla) {
 
 	const auto tabla = otsu::prepararOtsu(instancia.histograma, instancia.N);
 
-	const auto inicio = chrono::steady_clock::now();
+	auto inicio = chrono::steady_clock::now();
 
 	resultado.inicial = algo::generarSolucionInicial(instancia, tabla, semilla);
+
+	resultado.msInicial = msDesde(inicio);
 	assertRestricciones(resultado.inicial);
-	resultado.fInicial = otsu::funObj(resultado.inicial, tabla);
+
+	inicio = chrono::steady_clock::now();
 
 	resultado.final = algo::repararSolucion(resultado.inicial, tabla, semilla);
-	assertRestricciones(resultado.final);
-	resultado.fFinal = otsu::funObj(resultado.final, tabla);
 
-	const chrono::duration<double> transcurrido =
-		chrono::steady_clock::now() - inicio;
-	resultado.segundos = transcurrido.count();
+	resultado.msReparacion = msDesde(inicio);
+	assertRestricciones(resultado.final);
+
+	resultado.fInicial = otsu::funObj(resultado.inicial, tabla);
+	resultado.fFinal = otsu::funObj(resultado.final, tabla);
 
 	return resultado;
 }

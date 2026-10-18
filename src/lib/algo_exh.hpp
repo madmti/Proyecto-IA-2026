@@ -16,7 +16,7 @@ struct Optimo {
 
 // Busqueda exhaustiva: evalua todas las combinaciones factibles
 // 1 <= t1 < ... < tk <= 254 y devuelve la de mayor f(t).
-Optimo buscarOptimoExhaustivo(const io::Instancia &instancia,
+std::vector<int> buscarOptimoExhaustivo(const io::Instancia &instancia,
 							  const otsu::TablaOtsu &tabla);
 
 } // namespace algo

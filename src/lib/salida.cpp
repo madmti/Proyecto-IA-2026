@@ -57,8 +57,9 @@ void imprimirResultado(const Instancia &instancia, const Resultado &resultado) {
 		 << inicial << "  f=" << resultado.fInicial << "\n"
 		 << "    final    t=" << left << setw(ancho) << final
 		 << "  f=" << resultado.fFinal << "  (" << showpos
-		 << resultado.fFinal - resultado.fInicial << noshowpos << ")  "
-		 << setprecision(3) << resultado.segundos << " s\n";
+		 << resultado.fFinal - resultado.fInicial << noshowpos << ")\n"
+		 << setprecision(3) << "    tiempo   inicial=" << resultado.msInicial
+		 << " ms  reparacion=" << resultado.msReparacion << " ms\n";
 }
 
 void imprimirOptimo(const Instancia &instancia, const algo::Optimo &optimo) {
@@ -84,7 +85,9 @@ filesystem::path guardarResultado(const Instancia &instancia,
 			   << "\n"
 			   << "f_final " << resultado.fFinal << "\n"
 			   << "umbrales_final " << listarUmbrales(resultado.final) << "\n"
-			   << setprecision(6) << "segundos " << resultado.segundos << "\n";
+			   << setprecision(6) << "ms_inicial " << resultado.msInicial
+			   << "\n"
+			   << "ms_reparacion " << resultado.msReparacion << "\n";
 	});
 }
 
