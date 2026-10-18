@@ -9,14 +9,14 @@ namespace mri {
 
 // Optimo global de una instancia.
 struct Optimo {
-  std::vector<int> umbrales; // Una solucion optima (puede haber varias).
-  double f = 0.0;            // Valor optimo de f(t).
-  double segundos = 0.0;     // Tiempo de la busqueda.
+	std::vector<int> umbrales; // Una solucion optima (puede haber varias).
+	double f = 0.0;			   // Valor optimo de f(t).
+	double segundos = 0.0;	   // Tiempo de la busqueda.
 };
 
 // Busqueda exhaustiva: evalua todas las combinaciones factibles
 // 1 <= t1 < ... < tk <= 254 y devuelve la de mayor f(t).
 Optimo buscarOptimoExhaustivo(const Instancia &instancia,
-                              const TablaOtsu &tabla);
+							  const TablaOtsu &tabla);
 
 } // namespace mri

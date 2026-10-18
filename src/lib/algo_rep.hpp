@@ -10,6 +10,6 @@ namespace mri {
 // Todos los movimientos deben mantener la factibilidad:
 // 1 <= t1 < t2 < ... < tk <= 254.
 std::vector<int> repararSolucion(const std::vector<int> &inicial,
-                                 const TablaOtsu &tabla, unsigned int semilla);
+								 const TablaOtsu &tabla, unsigned int semilla);
 
 } // namespace mri

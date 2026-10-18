@@ -12,7 +12,7 @@ namespace mri {
 // Recibe la tabla para poder usar f(t) si el metodo es greedy.
 // La misma semilla produce la misma solucion.
 std::vector<int> generarSolucionInicial(const Instancia &instancia,
-                                        const TablaOtsu &tabla,
-                                        unsigned int semilla);
+										const TablaOtsu &tabla,
+										unsigned int semilla);
 
 } // namespace mri
