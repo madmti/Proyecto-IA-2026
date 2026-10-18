@@ -1,4 +1,4 @@
-#include "lib/imagenes.hpp"
+#include "lib/img.hpp"
 #include <iostream>
 #include <stdexcept>
 #include <string>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "imagenes.hpp"
+#include "img.hpp"
 
 #include <array>
 #include <vector>

@@ -1,7 +1,6 @@
-#include "lib/algo_exh.hpp"
-#include "lib/instancias.hpp"
+#include "lib/algo.hpp"
+#include "lib/io.hpp"
 #include "lib/otsu.hpp"
-#include "lib/salida.hpp"
 
 #include <exception>
 #include <iostream>
@@ -18,8 +17,8 @@ static double segundosDesde(chrono::steady_clock::time_point inicio) {
 }
 
 // Calcula el optimo global de una instancia.
-algo::Optimo resolver(const io::Instancia &instancia) {
-	algo::Optimo optimo;
+io::Optimo resolver(const io::Instancia &instancia) {
+	io::Optimo optimo;
 	const auto tabla = otsu::prepararOtsu(instancia.histograma, instancia.N);
 	const auto inicio = chrono::steady_clock::now();
 

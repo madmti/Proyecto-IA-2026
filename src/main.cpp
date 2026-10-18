@@ -1,8 +1,6 @@
-#include "lib/algo_gen.hpp"
-#include "lib/algo_rep.hpp"
-#include "lib/instancias.hpp"
+#include "lib/algo.hpp"
+#include "lib/io.hpp"
 #include "lib/otsu.hpp"
-#include "lib/salida.hpp"
 
 #include <chrono>
 #include <exception>

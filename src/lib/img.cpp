@@ -1,4 +1,4 @@
-#include "imagenes.hpp"
+#include "img.hpp"
 
 #include <algorithm>
 #include <cctype>
