@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace mri {
+namespace img {
 namespace {
 void crearDirectorio(const filesystem::path &ruta) {
 	if (ruta.has_parent_path())
@@ -129,4 +129,4 @@ void guardarImagen(const cv::Mat &imagen, const filesystem::path &ruta) {
 	if (!cv::imwrite(ruta.string(), imagen))
 		throw runtime_error("No se pudo guardar: " + ruta.string());
 }
-} // namespace mri
+} // namespace img

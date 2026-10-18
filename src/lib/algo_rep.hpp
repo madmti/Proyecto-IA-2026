@@ -4,12 +4,13 @@
 
 #include <vector>
 
-namespace mri {
+namespace algo {
 
 // Mejora una solucion factible mediante movimientos.
 // Todos los movimientos deben mantener la factibilidad:
 // 1 <= t1 < t2 < ... < tk <= 254.
 std::vector<int> repararSolucion(const std::vector<int> &inicial,
-								 const TablaOtsu &tabla, unsigned int semilla);
+								 const otsu::TablaOtsu &tabla,
+								 unsigned int semilla);
 
-} // namespace mri
+} // namespace algo

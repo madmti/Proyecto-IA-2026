@@ -13,15 +13,15 @@ const char *const CARPETA_INSTANCIAS = "data/preprocesado/instancias";
 const char *const CARPETA_OPTIMOS = "data/resultados/optimos";
 
 // Calcula el optimo global de una instancia.
-mri::Optimo resolver(const mri::Instancia &instancia) {
-	const auto tabla = mri::prepararOtsu(instancia.histograma, instancia.N);
-	return mri::buscarOptimoExhaustivo(instancia, tabla);
+algo::Optimo resolver(const io::Instancia &instancia) {
+	const auto tabla = otsu::prepararOtsu(instancia.histograma, instancia.N);
+	return algo::buscarOptimoExhaustivo(instancia, tabla);
 }
 
 int main() {
-	vector<mri::Instancia> instancias;
+	vector<io::Instancia> instancias;
 	try {
-		instancias = mri::cargarInstancias(CARPETA_INSTANCIAS);
+		instancias = io::cargarInstancias(CARPETA_INSTANCIAS);
 	} catch (const exception &e) {
 		cerr << "[e] error leyendo instancia: " << e.what() << "\n";
 		return 1;
@@ -32,8 +32,8 @@ int main() {
 	try {
 		for (const auto &instancia : instancias) {
 			const auto optimo = resolver(instancia);
-			mri::imprimirOptimo(instancia, optimo);
-			mri::guardarOptimo(instancia, optimo, CARPETA_OPTIMOS);
+			io::imprimirOptimo(instancia, optimo);
+			io::guardarOptimo(instancia, optimo, CARPETA_OPTIMOS);
 		}
 	} catch (const exception &e) {
 		cerr << "[e] error guardando optimo: " << e.what() << "\n";

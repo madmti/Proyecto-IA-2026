@@ -5,7 +5,7 @@
 #include <opencv2/core.hpp>
 #include <vector>
 
-namespace mri {
+namespace img {
 using Histograma = std::array<unsigned long long, 256>;
 
 // Todas las operaciones requieren una matriz no vacia CV_8UC1.
@@ -30,4 +30,4 @@ struct Segmentacion {
 Segmentacion segmentar(const cv::Mat &imagen, const std::vector<int> &umbrales);
 // Exige extension .png (sin perdida) y crea los directorios necesarios.
 void guardarImagen(const cv::Mat &imagen, const std::filesystem::path &ruta);
-} // namespace mri
+} // namespace img

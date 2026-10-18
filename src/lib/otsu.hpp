@@ -5,7 +5,7 @@
 #include <array>
 #include <vector>
 
-namespace mri {
+namespace otsu {
 
 // Valores precalculados del histograma para evaluar f(t) en O(k).
 struct TablaOtsu {
@@ -15,9 +15,9 @@ struct TablaOtsu {
 };
 
 // Precalcula las sumas acumuladas una sola vez por instancia.
-TablaOtsu prepararOtsu(const Histograma &histograma, unsigned long long N);
+TablaOtsu prepararOtsu(const img::Histograma &histograma, unsigned long long N);
 
 // Varianza entre clases de Otsu para los umbrales dados.
 double funObj(const std::vector<int> &umbrales, const TablaOtsu &tabla);
 
-} // namespace mri
+} // namespace otsu

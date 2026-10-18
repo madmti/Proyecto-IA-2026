@@ -37,21 +37,21 @@ void assertRestricciones(const std::vector<int> &umbrales) {
 }
 
 // Resuelve una instancia especifica
-mri::Resultado resolver(const mri::Instancia &instancia, unsigned int semilla) {
-	mri::Resultado resultado;
+io::Resultado resolver(const io::Instancia &instancia, unsigned int semilla) {
+	io::Resultado resultado;
 	resultado.semilla = semilla;
 
-	const auto tabla = mri::prepararOtsu(instancia.histograma, instancia.N);
+	const auto tabla = otsu::prepararOtsu(instancia.histograma, instancia.N);
 
 	const auto inicio = chrono::steady_clock::now();
 
-	resultado.inicial = mri::generarSolucionInicial(instancia, tabla, semilla);
+	resultado.inicial = algo::generarSolucionInicial(instancia, tabla, semilla);
 	assertRestricciones(resultado.inicial);
-	resultado.fInicial = mri::funObj(resultado.inicial, tabla);
+	resultado.fInicial = otsu::funObj(resultado.inicial, tabla);
 
-	resultado.final = mri::repararSolucion(resultado.inicial, tabla, semilla);
+	resultado.final = algo::repararSolucion(resultado.inicial, tabla, semilla);
 	assertRestricciones(resultado.final);
-	resultado.fFinal = mri::funObj(resultado.final, tabla);
+	resultado.fFinal = otsu::funObj(resultado.final, tabla);
 
 	const chrono::duration<double> transcurrido =
 		chrono::steady_clock::now() - inicio;
@@ -61,9 +61,9 @@ mri::Resultado resolver(const mri::Instancia &instancia, unsigned int semilla) {
 }
 
 int main() {
-	vector<mri::Instancia> instancias;
+	vector<io::Instancia> instancias;
 	try {
-		instancias = mri::cargarInstancias(CARPETA_INSTANCIAS);
+		instancias = io::cargarInstancias(CARPETA_INSTANCIAS);
 	} catch (const exception &e) {
 		cerr << "[e] error leyendo instancia: " << e.what() << "\n";
 		return 1;
@@ -74,8 +74,8 @@ int main() {
 	try {
 		for (const auto &instancia : instancias) {
 			const auto resultado = resolver(instancia, SEMILLA);
-			mri::imprimirResultado(instancia, resultado);
-			mri::guardarResultado(instancia, resultado, CARPETA_SOLUCIONES);
+			io::imprimirResultado(instancia, resultado);
+			io::guardarResultado(instancia, resultado, CARPETA_SOLUCIONES);
 		}
 	} catch (const exception &e) {
 		cerr << "[e] error guardando solucion: " << e.what() << "\n";

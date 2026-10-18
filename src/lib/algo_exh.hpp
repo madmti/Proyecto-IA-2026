@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace mri {
+namespace algo {
 
 // Optimo global de una instancia.
 struct Optimo {
@@ -16,7 +16,7 @@ struct Optimo {
 
 // Busqueda exhaustiva: evalua todas las combinaciones factibles
 // 1 <= t1 < ... < tk <= 254 y devuelve la de mayor f(t).
-Optimo buscarOptimoExhaustivo(const Instancia &instancia,
-							  const TablaOtsu &tabla);
+Optimo buscarOptimoExhaustivo(const io::Instancia &instancia,
+							  const otsu::TablaOtsu &tabla);
 
-} // namespace mri
+} // namespace algo

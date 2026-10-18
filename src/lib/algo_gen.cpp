@@ -2,10 +2,10 @@
 #include <cassert>
 #include <vector>
 
-namespace mri {
+namespace algo {
 
-std::vector<int> generarSolucionInicial(const Instancia &instancia,
-										const TablaOtsu &, unsigned int) {
+std::vector<int> generarSolucionInicial(const io::Instancia &instancia,
+										const otsu::TablaOtsu &, unsigned int) {
 	std::vector<int> sol(instancia.k, 0);
 	for (int i = 0; i < instancia.k; i++) {
 		sol[i] = i + 1;
@@ -13,4 +13,4 @@ std::vector<int> generarSolucionInicial(const Instancia &instancia,
 	return sol;
 }
 
-} // namespace mri
+} // namespace algo

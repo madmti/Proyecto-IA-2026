@@ -1,10 +1,10 @@
 #include "algo_rep.hpp"
 
-namespace mri {
+namespace algo {
 
 std::vector<int> repararSolucion(const std::vector<int> &inicial,
-								 const TablaOtsu &, unsigned int) {
+								 const otsu::TablaOtsu &, unsigned int) {
 	return inicial;
 }
 
-} // namespace mri
+} // namespace algo

@@ -3,9 +3,9 @@
 #include <cassert>
 #include <cmath>
 
-namespace mri {
+namespace otsu {
 
-TablaOtsu prepararOtsu(const Histograma &hist, unsigned long long N) {
+TablaOtsu prepararOtsu(const img::Histograma &hist, unsigned long long N) {
 	std::array<double, 256> accP, accGP;
 	unsigned long long acclongP = 0, acclongGP = 0;
 	auto L = hist.size();
@@ -28,10 +28,11 @@ double funObj(const std::vector<int> &umbrales, const TablaOtsu &tabla) {
 	};
 
 	int b = umbrales.front(), a = umbrales.front();
-	double f = tabla.acumP[b - 1] > 0
-				   ? tabla.acumP[b - 1] *
-						 pow(tabla.acumGP[b - 1] / tabla.acumP[b - 1] - tabla.muT, 2)
-				   : 0;
+	double f =
+		tabla.acumP[b - 1] > 0
+			? tabla.acumP[b - 1] *
+				  pow(tabla.acumGP[b - 1] / tabla.acumP[b - 1] - tabla.muT, 2)
+			: 0;
 
 	for (long unsigned int j = 1; j < umbrales.size(); j++) {
 		int umbral = umbrales[j];
@@ -45,4 +46,4 @@ double funObj(const std::vector<int> &umbrales, const TablaOtsu &tabla) {
 	return f;
 }
 
-} // namespace mri
+} // namespace otsu

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace mri {
+namespace io {
 namespace {
 const string CABECERA = "SEGMENTACION_MULTIUMBRAL_V1";
 
@@ -128,4 +128,4 @@ vector<Instancia> cargarInstancias(const filesystem::path &carpeta) {
 	return instancias;
 }
 
-} // namespace mri
+} // namespace io

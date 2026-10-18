@@ -20,16 +20,16 @@ int main(int argc, char **argv) {
 				throw invalid_argument("Umbral no entero");
 			umbrales.push_back(t);
 		}
-		mri::validarUmbrales(umbrales);
-		const auto imagen = mri::cargarImagen(argv[1]);
-		const auto histograma = mri::calcularHistograma(imagen);
-		const auto resultado = mri::segmentar(imagen, umbrales);
+		img::validarUmbrales(umbrales);
+		const auto imagen = img::cargarImagen(argv[1]);
+		const auto histograma = img::calcularHistograma(imagen);
+		const auto resultado = img::segmentar(imagen, umbrales);
 		const filesystem::path salida = argv[2];
-		mri::guardarImagen(resultado.etiquetas, salida / "etiquetas.png");
-		mri::guardarImagen(resultado.visualizacion, salida / "segmentada.png");
-		mri::guardarHistograma(histograma, salida / "histograma.csv");
+		img::guardarImagen(resultado.etiquetas, salida / "etiquetas.png");
+		img::guardarImagen(resultado.visualizacion, salida / "segmentada.png");
+		img::guardarHistograma(histograma, salida / "histograma.csv");
 		cout << "Imagen: " << imagen.cols << 'x' << imagen.rows
-			 << ", intensidad (0,0): " << mri::intensidad(imagen, 0, 0)
+			 << ", intensidad (0,0): " << img::intensidad(imagen, 0, 0)
 			 << ", clases: " << umbrales.size() + 1 << "\nSalida: " << salida
 			 << '\n';
 	} catch (const exception &e) {

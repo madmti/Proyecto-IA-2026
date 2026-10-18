@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace mri {
+namespace io {
 namespace {
 string formatearUmbrales(const vector<int> &umbrales) {
 	ostringstream texto;
@@ -61,7 +61,7 @@ void imprimirResultado(const Instancia &instancia, const Resultado &resultado) {
 		 << setprecision(3) << resultado.segundos << " s\n";
 }
 
-void imprimirOptimo(const Instancia &instancia, const Optimo &optimo) {
+void imprimirOptimo(const Instancia &instancia, const algo::Optimo &optimo) {
 	cout << "[i] " << instancia.ruta.filename().string()
 		 << " (k=" << instancia.k << ")\n"
 		 << fixed << setprecision(4)
@@ -88,7 +88,8 @@ filesystem::path guardarResultado(const Instancia &instancia,
 	});
 }
 
-filesystem::path guardarOptimo(const Instancia &instancia, const Optimo &optimo,
+filesystem::path guardarOptimo(const Instancia &instancia,
+							   const algo::Optimo &optimo,
 							   const filesystem::path &carpeta) {
 	return guardarArchivo(instancia, carpeta, [&](ostream &salida) {
 		salida << "OPTIMO_MULTIUMBRAL_V1\n"
@@ -101,4 +102,4 @@ filesystem::path guardarOptimo(const Instancia &instancia, const Optimo &optimo,
 	});
 }
 
-} // namespace mri
+} // namespace io

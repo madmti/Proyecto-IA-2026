@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <vector>
 
-namespace mri {
+namespace io {
 
 // Resultado de resolver una instancia.
 struct Resultado {
@@ -22,7 +22,7 @@ struct Resultado {
 void imprimirResultado(const Instancia &instancia, const Resultado &resultado);
 
 // Imprime por consola el optimo global de una instancia (umbrales, f y tiempo).
-void imprimirOptimo(const Instancia &instancia, const Optimo &optimo);
+void imprimirOptimo(const Instancia &instancia, const algo::Optimo &optimo);
 
 // Guardan un archivo de texto por instancia en <carpeta>/<instancia>.txt
 // (ej: data/resultados/soluciones/imagen_01_k2.txt). Crean la carpeta si no
@@ -32,7 +32,7 @@ std::filesystem::path guardarResultado(const Instancia &instancia,
 									   const Resultado &resultado,
 									   const std::filesystem::path &carpeta);
 std::filesystem::path guardarOptimo(const Instancia &instancia,
-									const Optimo &optimo,
+									const algo::Optimo &optimo,
 									const std::filesystem::path &carpeta);
 
-} // namespace mri
+} // namespace io
