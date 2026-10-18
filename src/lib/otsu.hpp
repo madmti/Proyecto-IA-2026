@@ -18,6 +18,11 @@ struct TablaOtsu {
 TablaOtsu prepararOtsu(const img::Histograma &histograma, unsigned long long N);
 
 // Varianza entre clases de Otsu para los umbrales dados.
+// Aporte w_j * (mu_j - muT)^2 de la clase con intensidades [a, b).
+// Maneja los bordes: a <= 0 es el inicio del histograma, b >= 256 es el final
+// y una clase vacia (w_j = 0) o con b <= a aporta 0.
+double fTerm(const TablaOtsu &tabla, int a, int b);
+
 double funObj(const std::vector<int> &umbrales, const TablaOtsu &tabla);
 
 } // namespace otsu

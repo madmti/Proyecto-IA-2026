@@ -1,7 +1,7 @@
 #include "otsu.hpp"
+#include <algorithm>
 #include <array>
 #include <cassert>
-#include <cmath>
 
 namespace otsu {
 
@@ -20,30 +20,28 @@ TablaOtsu prepararOtsu(const img::Histograma &hist, unsigned long long N) {
 	return TablaOtsu{accP, accGP, accGP[L - 1]};
 }
 
-double funObj(const std::vector<int> &umbrales, const TablaOtsu &tabla) {
-	auto f_term = [&tabla](int a, int b) -> double {
-		double w_j = (tabla.acumP[b - 1] - tabla.acumP[a - 1]),
-			   GP_j = (tabla.acumGP[b - 1] - tabla.acumGP[a - 1]);
-		return w_j > 0 ? w_j * pow(GP_j / w_j - tabla.muT, 2) : 0;
+double fTerm(const TablaOtsu &tabla, int a, int b) {
+	auto acum = [](const std::array<double, 256> &v, int g) {
+		return g < 0 ? 0.0 : v[std::min(g, 255)];
 	};
 
-	int b = umbrales.front(), a = umbrales.front();
-	double f =
-		tabla.acumP[b - 1] > 0
-			? tabla.acumP[b - 1] *
-				  pow(tabla.acumGP[b - 1] / tabla.acumP[b - 1] - tabla.muT, 2)
-			: 0;
+	const double w_j = acum(tabla.acumP, b - 1) - acum(tabla.acumP, a - 1);
+	const double GP_j = acum(tabla.acumGP, b - 1) - acum(tabla.acumGP, a - 1);
+	if (w_j <= 0)
+		return 0;
 
-	for (long unsigned int j = 1; j < umbrales.size(); j++) {
-		int umbral = umbrales[j];
-		b = umbral;
-		f += f_term(a, b);
-		a = umbral;
+	const double dif = GP_j / w_j - tabla.muT;
+	return w_j * dif * dif;
+}
+
+double funObj(const std::vector<int> &umbrales, const TablaOtsu &tabla) {
+	double f = 0;
+	int a = 0;
+	for (const int b : umbrales) {
+		f += fTerm(tabla, a, b);
+		a = b;
 	}
-
-	f += f_term(a, 256);
-
-	return f;
+	return f + fTerm(tabla, a, 256);
 }
 
 } // namespace otsu
