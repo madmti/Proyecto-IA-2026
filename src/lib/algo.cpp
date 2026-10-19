@@ -1,6 +1,10 @@
 #include "algo.hpp"
 #include "otsu.hpp"
+#include <algorithm>
+#include <cassert>
+#include <queue>
 #include <random>
+#include <tuple>
 #include <vector>
 
 namespace algo {
@@ -10,7 +14,7 @@ namespace algo {
 =================================================================*/
 
 void greedy(std::vector<int> &umbrales, double &facc, int k,
-			 const otsu::TablaOtsu &tabla, std::mt19937 &gen) {
+			const otsu::TablaOtsu &tabla, std::mt19937 &gen) {
 	int size = static_cast<int>(umbrales.size());
 	if (size >= k + 1) {
 		facc += otsu::fTerm(tabla, umbrales.back(), 255);
@@ -39,7 +43,6 @@ void greedy(std::vector<int> &umbrales, double &facc, int k,
 	greedy(umbrales, facc, k, tabla, gen);
 }
 
-
 std::vector<int> generarSolucionInicial(const io::Instancia &instancia,
 										const otsu::TablaOtsu &tabla,
 										unsigned int semilla) {
@@ -55,9 +58,98 @@ std::vector<int> generarSolucionInicial(const io::Instancia &instancia,
 					Algoritmo Reparador
 =================================================================*/
 
+constexpr unsigned long long MAX_ITER = 1000;
+
+double funObjMod(std::vector<int> umbrales, std::tuple<int, int> vecino,
+				 const otsu::TablaOtsu &tabla) {
+	auto [idx, val] = vecino;
+	umbrales[idx] = val;
+	return otsu::funObj(umbrales, tabla);
+}
+
+std::vector<std::tuple<int, int>> generarVecinos(std::vector<int> &actual,
+												 int size) {
+	std::vector<std::tuple<int, int>> vecinos;
+
+	auto agregarVecinos = [&actual, &vecinos, &size](int mov) {
+		for (int i = 0; i < size; i++) {
+			int val = actual[i] + mov;
+			if (val < 1 || val > 254)
+				continue;
+			if (std::find(actual.begin(), actual.end(), val) != actual.end())
+				continue;
+			std::tuple<int, int> vecino = std::make_tuple(i, val);
+			vecinos.push_back(vecino);
+		}
+	};
+
+	agregarVecinos(1);
+	agregarVecinos(-1);
+
+	return vecinos;
+}
+
+std::vector<int> tabusearch(const std::vector<int> &inicial,
+							const otsu::TablaOtsu &tabla,
+							unsigned int semilla) {
+	// T arbitrario, probando nomas me sirvio T = 10 que fue mejor que 2 * size - 1
+	int size = static_cast<int>(inicial.size()), T = 10;
+	std::vector<int> actual = inicial, mejor = inicial;
+	double fmax = otsu::funObj(inicial, tabla);
+
+	std::deque<std::tuple<int, int>> tabu;
+	for (int i = 0; i < size; i++)
+		tabu.push_back(std::make_tuple(i, inicial[i]));
+
+	for (unsigned long long i = 0; i < MAX_ITER; i++) {
+		if (T > 0)
+			T -= 1;
+		else
+			tabu.pop_front();
+		auto vecinos = generarVecinos(actual, size);
+
+		std::tuple<int, int> candidato = std::make_tuple(-1, -1),
+							 local = std::make_tuple(-1, -1);
+		double fcandidato = -1.0, flocal = -1.0;
+
+		for (auto &vecino : vecinos) {
+			double fvecino = funObjMod(actual, vecino, tabla);
+			if (fvecino > flocal) {
+				flocal = fvecino;
+				local = vecino;
+			}
+			if (fvecino <= fcandidato)
+				continue;
+			auto it = std::find(tabu.begin(), tabu.end(), vecino);
+			if (it == tabu.end() || fvecino > fmax) {
+				fcandidato = fvecino;
+				candidato = vecino;
+			}
+		}
+
+		// Caso borde donde no hay ningun vecino candidato, elegimos nomas el mejor de los tabus
+		if (fcandidato < 0) {
+			fcandidato = flocal;
+			candidato = local;
+		}
+
+		auto [idx, val] = candidato;
+		actual[idx] = val;
+		tabu.push_back(candidato);
+
+		if (fcandidato > fmax) {
+			fmax = fcandidato;
+			mejor = actual;
+		}
+	}
+
+	return mejor;
+}
+
 std::vector<int> repararSolucion(const std::vector<int> &inicial,
-								 const otsu::TablaOtsu &, unsigned int) {
-	return inicial;
+								 const otsu::TablaOtsu &tabla,
+								 unsigned int semilla) {
+	return tabusearch(inicial, tabla, semilla);
 }
 
 /*=================================================================
