@@ -1,5 +1,5 @@
 #include "algo.hpp"
-
+#include "otsu.hpp"
 #include <random>
 #include <vector>
 
@@ -10,7 +10,7 @@ namespace algo {
 =================================================================*/
 
 void greedy(std::vector<int> &umbrales, double &facc, int k,
-			const otsu::TablaOtsu &tabla, std::mt19937 &gen) {
+			 const otsu::TablaOtsu &tabla, std::mt19937 &gen) {
 	int size = static_cast<int>(umbrales.size());
 	if (size >= k + 1) {
 		facc += otsu::fTerm(tabla, umbrales.back(), 255);
@@ -21,6 +21,10 @@ void greedy(std::vector<int> &umbrales, double &facc, int k,
 	std::vector<int> candidatos;
 	for (int um = cotainf; um <= cota_sup; um++) {
 		double aporte = otsu::fTerm(tabla, umbrales.back(), um);
+
+		// Incluir el aporte simulado de toda la masa restante
+		aporte += otsu::fTerm(tabla, um, 255);
+
 		if (aporte > max) {
 			max = aporte;
 			candidatos = {um};
@@ -34,6 +38,7 @@ void greedy(std::vector<int> &umbrales, double &facc, int k,
 	umbrales.push_back(candidatos[dist(gen)]);
 	greedy(umbrales, facc, k, tabla, gen);
 }
+
 
 std::vector<int> generarSolucionInicial(const io::Instancia &instancia,
 										const otsu::TablaOtsu &tabla,
