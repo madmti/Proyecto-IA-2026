@@ -1,0 +1,249 @@
+\documentclass[letter, 10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[dvips]{graphicx}
+\usepackage{url}
+\usepackage[top=3cm,bottom=3cm,left=3.5cm,right=3.5cm,footskip=1.5cm,headheight=1.5cm,headsep=.5cm,textheight=3cm]{geometry}
+
+
+\begin{document}
+\title{Inteligencia Artificial \\ \begin{Large}Estado del Arte: Problema "Segmentacion de Imagenes medicas mediante metaheuristicas"\end{Large}}
+\author{Mat\'ias Peñaloza 202373037\-8}
+\date{\today}
+\maketitle
+
+
+%--------------------No borrar esta secci\'on--------------------------------%
+\section*{Evaluaci\'on}
+
+\begin{tabular}{ll}
+Resumen (5\%): & \underline{\hspace{2cm}} \\
+Introducci\'on (5\%):  & \underline{\hspace{2cm}} \\
+Definici\'on del Problema (10\%):  & \underline{\hspace{2cm}} \\
+Estado del Arte (40\%):  & \underline{\hspace{2cm}} \\
+Modelo Matem\'atico (20\%): &  \underline{\hspace{2cm}}\\
+Conclusiones (15\%): &  \underline{\hspace{2cm}}\\
+Bibliograf\'ia (5\%): & \underline{\hspace{2cm}}\\
+ &  \\
+\textbf{Nota Final (100\%)}:   & \underline{\hspace{2cm}}
+\end{tabular}
+%---------------------------------------------------------------------------%
+\vspace{2cm}
+
+
+\begin{abstract}
+Este trabajo aborda la segmentaci\'on de im\'agenes de resonancia magn\'etica cerebral mediante umbralizaci\'on multinivel, seleccionando los umbrales que maximizan la varianza entre clases de Otsu.
+Dado que el espacio de b\'usqueda crece combinatoriamente con el n\'umero de umbrales, se revisa el uso de metaheur\'isticas para resolverlo, desde los enfoques cl\'asicos hasta las tendencias h\'ibridas recientes.
+Finalmente, se formaliza el modelo matem\'atico y se discuten limitaciones y trabajo futuro.
+\end{abstract}
+
+\section{Introducci\'on}
+En la medicina moderna, es com\'un utilizar diversos tipos de im\'agenes a la hora de realizar un diagn\'ostico cl\'inico;
+el an\'alisis y procesamiento de estas es fundamental para la toma de decisiones. La Imagen por Resonancia Magn\'etica (MRI)~\cite{Islam2023MedicalImaging}
+es una t\'ecnica no invasiva que consiste en utilizar campos magn\'eticos y ondas de radio para producir im\'agenes de alta calidad de estructuras internas del cuerpo humano.
+
+A pesar de esto, aislar e identificar estructuras complejas de inter\'es requiere de t\'ecnicas de procesamiento adicionales.
+La segmentaci\'on de im\'agenes a trav\'es de umbralizaci\'on es simple y computacionalmente barata,
+por lo que resulta tremendamente eficaz para dividir una imagen en diferentes regiones de intensidad.
+Sin embargo, cuando se utilizan varios umbrales con el fin de reconocer varias estructuras,
+encontrar una buena combinaci\'on se transforma en un problema complejo de optimizaci\'on.
+
+Este documento tiene como prop\'osito realizar un estudio del estado del arte,
+junto con formalizar las bases del problema de optimizaci\'on.
+En las secciones siguientes se puede encontrar:
+la formalizaci\'on del problema a resolver (Secci\'on 3),
+una revisi\'on de la literatura relacionada al problema y los algoritmos que lo implementan (Secci\'on 4),
+la formulaci\'on del problema como un modelo matem\'atico (Secci\'on 5), y, finalmente,
+conclusiones relevantes del estudio realizado (Secci\'on 6).
+
+\section{Definici\'on del Problema}
+La segmentaci\'on de im\'agenes a trav\'es de umbrales es un amplio tipo de problema:
+\begin{itemize}
+    \item \textbf{N\'umero de umbrales}: puede variar entre binivel (\'unico umbral) o multinivel (varios umbrales). Cabe decir que, mientras mayor sea el n\'umero de umbrales a seleccionar, el espacio de b\'usqueda crece exponencialmente y sufre de una explosi\'on combinatoria~\cite{Hammouche2010Comparative, Manikandan2014Multilevel}.
+    \item \textbf{Parametrizaci\'on}: puede variar entre ser un problema param\'etrico (las regiones siguen una distribuci\'on de probabilidad) o no param\'etrico (no se asume una distribuci\'on para las regiones y los umbrales se obtienen optimizando directamente una funci\'on objetivo sobre el histograma de la imagen). Para el caso param\'etrico, resulta ser un problema no lineal bastante costoso~\cite{Hammouche2010Comparative}.
+    \item \textbf{Funci\'on objetivo}: para seleccionar los umbrales se puede maximizar la varianza entre clases~\cite{Otsu1979}, maximizar la suma de entrop\'ias de las clases~\cite{Kapur1985, Manikandan2014Multilevel}, utilizar entrop\'ia cruzada~\cite{LiLee1993}, etc.
+    \item \textbf{Cantidad de umbrales}: el n\'umero de umbrales puede estar fijado de antemano, siendo un par\'ametro del problema, o considerarse desconocido, en cuyo caso tambi\'en forma parte de la soluci\'on a encontrar~\cite{Hammouche2008Multilevel}.
+\end{itemize}
+
+Otras variantes incluyen dividir las im\'agenes en subim\'agenes~\cite{Rahnamayan2006} o incluir m\'ultiples criterios de selecci\'on (multiobjetivo)~\cite{Nakib2007}, seg\'un lo reportado en~\cite{Hammouche2010Comparative}. En este trabajo se abordar\'a la segmentaci\'on de im\'agenes como un problema \textbf{Multinivel (varios umbrales)} de tipo \textbf{no param\'etrico} sobre im\'agenes de resonancia magn\'etica, donde se utilizar\'a el criterio de \textbf{Otsu (maximizar varianza entre clases)}~\cite{Otsu1979} para encontrar los valores de los umbrales que mejor dividan los p\'ixeles de cada imagen en regiones de intensidad, considerando un n\'umero de umbrales fijado de antemano.
+
+Se utilizar\'an 10 im\'agenes diferentes provenientes del conjunto de datos \textit{Brain Tumor Dataset (Jun Cheng)}~\cite{Cheng2017BrainTumor}, preprocesadas a escala de grises, resoluci\'on de 256x256 p\'ixeles y 8 bits de profundidad. Para cada una se evaluar\'an cantidades fijas de dos, cuatro y seis umbrales, resultando en un total de treinta instancias independientes.
+
+En este contexto, las variables del problema corresponden a los umbrales de intensidad a seleccionar, los cuales toman valores enteros entre 1 y 254. Esto est\'a sujeto a la restricci\'on de que los umbrales deben ser estrictamente crecientes para delimitar las regiones de intensidad correctamente.
+Cabe mencionar que no se realizar\'a una b\'usqueda exhaustiva; dada la explosi\'on combinatoria, existe motivaci\'on para realizar la b\'usqueda de soluciones a trav\'es de metaheur\'isticas, las cuales permiten escapar de \'optimos locales y obtener soluciones cercanas al \'optimo en un tiempo razonable,
+aunque sin garantizar el \'optimo global~\cite{Hammouche2010Comparative, Lameesa2024Role}.
+
+\section{Estado del Arte}
+
+Las bases del problema surgen con el m\'etodo de Otsu en 1979~\cite{Otsu1979}, el cual maximiza la varianza entre clases, y el m\'etodo de Kapur en 1985~\cite{Kapur1985}, el cual utiliza la entrop\'ia como criterio.
+Inicialmente, ambos m\'etodos resuelven el problema para un \'unico umbral, y, aunque son extensibles al caso multiumbral, resultan ineficientes dado que, al realizar b\'usqueda exhaustiva,
+est\'an sujetos a la explosi\'on combinatoria que surge al aumentar el n\'umero de umbrales, la cual es del orden de $O(L^{k})$, donde $k$ es el n\'umero de umbrales.~\cite{Manikandan2014Multilevel, Hammouche2010Comparative}.
+%%
+Mientras, en la literatura surgen las metaheur\'isticas como algoritmos que no necesitan revisar todo el espacio de b\'usqueda para encontrar soluciones de calidad, destacando:
+Genetic Algorithms (GA), Simulated Annealing (SA), Particle Swarm Optimization (PSO), Differential Evolution (DE), Tabu Search (TS) y Ant Colony Optimization (ACO)~\cite{Hammouche2010Comparative}.
+Estos algoritmos incompletos empezaron a ser aplicados para optimizar los criterios de Otsu y Kapur para segmentaci\'on multiumbral,
+siendo GA una de las m\'as utilizadas seguida de PSO, SA y ACO~\cite{Hammouche2010Comparative}.
+
+Como se ha mencionado anteriormente, utilizar b\'usqueda exhaustiva en este problema es muy costoso. Se han utilizado diversos m\'etodos para reducir el costo computacional,
+tales como tablas precalculadas que evitan c\'alculos repetitivos~\cite{Hammouche2010Comparative, Manikandan2014Multilevel}.
+Por su parte, los enfoques param\'etricos, que asumen una distribuci\'on de probabilidad para cada clase, derivan en un problema no lineal que tambi\'en resulta muy costoso~\cite{Hammouche2010Comparative}.
+Por otro lado, se exploraron m\'etodos de dicotomizaci\'on secuencial que dividen el histograma iterativamente, los cuales resultan ser muy r\'apidos pero con soluciones sub\'optimas.
+Los m\'etodos puramente iterativos mostraron ser sensibles a los valores iniciales, con una tendencia a quedar atrapados en \'optimos locales~\cite{Hammouche2010Comparative}.
+Las metaheur\'isticas resultaron ser capaces de escapar de \'optimos locales y encontrar soluciones de alta calidad en tiempos razonables; a pesar de no garantizar un \'optimo global,
+se volvieron un enfoque ampliamente utilizado en la segmentaci\'on multiumbral~\cite{Hammouche2010Comparative, Lameesa2024Role}.
+
+Para los mejores algoritmos creados hasta la fecha, un estudio comparativo optimizando el criterio de Otsu en im\'agenes de 256 niveles demuestra que
+el desempe\~no de las metaheur\'isticas bajo pocos umbrales es bastante similar. Sin embargo, al aumentar el n\'umero de umbrales,
+los algoritmos basados en poblaci\'on, GA, PSO y DE, superan por mucho a los basados en trayectoria, SA y TS,
+debido a que estos \'ultimos no logran escapar de los \'optimos locales generados; mientras que ACO, a pesar de ser poblacional, tampoco logra mantener la calidad de sus soluciones.
+Para los algoritmos poblacionales, DE resulta entregar soluciones de mayor calidad que los dem\'as,
+mientras que PSO resulta converger mucho m\'as r\'apido tanto en iteraciones como en tiempo de ejecuci\'on que los dem\'as~\cite{Hammouche2010Comparative}.
+%%
+Por otro lado, en optimizaciones del m\'etodo de Kapur sobre im\'agenes MRI cerebrales ponderadas en T2, aplicar GA codificado en Reales (RGA) result\'o entregar soluciones de mayor calidad con mayor entrop\'ia y menor desviaci\'on est\'andar que PSO, BF (Bacterial Foraging), ABF (Adaptive Bacterial Foraging) y Nelder-Mead en ejecuciones independientes~\cite{Manikandan2014Multilevel}.
+
+La soluci\'on para este problema se representa como un vector de umbrales ordenados; los diferentes enfoques radican en la representaci\'on del valor de los umbrales y en los movimientos utilizados~\cite{Hammouche2010Comparative, Manikandan2014Multilevel}.
+En los algoritmos cl\'asicos, GA utiliza selecci\'on por torneo, cruce aritm\'etico y mutaci\'on gaussiana; PSO desplaza cada part\'icula seg\'un una velocidad atra\'ida hacia su mejor posici\'on hist\'orica y hacia la mejor posici\'on global;
+DE genera soluciones mutantes sumando a una soluci\'on la diferencia escalada entre otras dos; ACO construye los umbrales a partir de una matriz de feromonas reforzada por la mejor soluci\'on;
+SA acepta vecinos de peor calidad con una probabilidad que disminuye junto con la temperatura; y TS desplaza cada umbral dentro de un rango acotado, evitando revisitar soluciones recientes mediante una lista tab\'u~\cite{Hammouche2010Comparative}.
+En la literatura existen representaciones de cadenas de bits implementadas en GA~\cite{Hammouche2010Comparative}; sin embargo, la representaci\'on de punto flotante o real resulta m\'as adecuada y natural al problema~\cite{Manikandan2014Multilevel}.
+Esto puede explicarse porque, en una representaci\'on binaria, un cambio en 1 bit puede desatar un salto muy grande que puede alejar al algoritmo de soluciones de calidad, no permitiendo que este pueda afinar sus soluciones.
+En una representaci\'on real, en cambio, las modificaciones son graduales y sinergian muy bien con movimientos como Simulated Binary Crossover (SBX) o Polynomial Mutation.
+La heur\'istica SBX controla el nivel de dispersi\'on de sus soluciones dependiendo de qu\'e tan dispersas est\'an las soluciones padre; esto favorece la exploraci\'on tanto como la explotaci\'on.
+La heur\'istica Polynomial Mutation, o Mutaci\'on polinomial, modifica los umbrales a trav\'es de una distribuci\'on de probabilidad que favorece ajustes finos en zonas prometedoras, otorgando as\'i alta capacidad adaptativa~\cite{Manikandan2014Multilevel}.
+
+El estado del arte actual tiende a alejarse de utilizar metaheur\'isticas de manera tradicional, enfoc\'andose en algoritmos h\'ibridos o mejores equilibrios entre exploraci\'on y explotaci\'on~\cite{Lameesa2024Role}.
+Algunos ejemplos recientes incluyen combinar Reptile Search Algorithm (RSA) con Salp Swarm Algorithm (SSA) para evitar estancarse en regiones locales,
+o combinar RSA con Runge-Kutta para acelerar la convergencia en segmentaci\'on multiumbral de MRI cerebral, obteniendo el mejor PSNR en 25 de 40 casos evaluados, aunque con un costo computacional notablemente mayor~\cite{Lameesa2024Role}.
+Al mismo tiempo, estas t\'ecnicas se integran en la optimizaci\'on de hiperpar\'ametros o selecci\'on de caracter\'isticas de CNN y modelos U-Net,
+extendiendo su uso a la segmentaci\'on de im\'agenes m\'edicas mediante Deep Learning, un enfoque distinto a la selecci\'on de umbrales~\cite{Lameesa2024Role}.
+
+\section{Modelo Matem\'atico}
+Este modelo corresponde a una formulaci\'on no param\'etrica del problema, en la cual los umbrales se obtienen optimizando directamente una funci\'on calculada sobre el histograma de la imagen.
+Como funci\'on objetivo se utiliza el criterio discriminante de Otsu~\cite{Otsu1979} en su extensi\'on multiumbral,
+y su planteamiento como problema de optimizaci\'on para metaheur\'isticas sigue a Hammouche et al.~\cite{Hammouche2010Comparative}.
+
+\subsection{Par\'ametros}
+Cada instancia del problema queda definida por una imagen y un n\'umero de umbrales, sean:
+\begin{itemize}
+    \item $L = 256$ la cantidad de niveles de intensidad y $G = \{0, 1, \dots, 255\}$ el dominio de intensidades.
+    \item $N = 256 \times 256 = 65.536$ la cantidad total de p\'ixeles de una imagen.
+    \item $h(g)$ la funci\'on de histograma, que entrega la cantidad de p\'ixeles de la imagen con intensidad $g \in G$.
+    \item $p_g = \frac{h(g)}{N}$ la proporci\'on de p\'ixeles con intensidad $g$, que cumple $p_g \geq 0$ y $\sum\limits_{g=0}^{255} p_g = 1$.
+    \item $k \in \{2, 4, 6\}$ el n\'umero de umbrales a encontrar, fijo para cada instancia.
+    \item $\mu_T = \sum\limits_{g=0}^{255} g\, p_g$ la intensidad media de toda la imagen, que no depende de los umbrales.
+\end{itemize}
+
+\subsection{Variables}
+Las soluciones se representan mediante un vector de $k$ umbrales enteros:
+\begin{equation}
+    \mathbf{t} = (t_1, t_2, \dots, t_k), \qquad t_i \in \mathbb{Z}, \quad i = 1, \dots, k,
+\end{equation}
+donde cada $t_i$ corresponde a un nivel de intensidad que separa dos regiones consecutivas de la imagen. Para escribir las regiones de forma compacta se definen adem\'as dos umbrales ficticios constantes, $t_0 = 0$ y $t_{k+1} = 256$, que no son variables del problema. Los umbrales dividen el dominio de intensidades en $k+1$ clases:
+\begin{equation}
+    C_j = \{t_j, t_j + 1, \dots, t_{j+1} - 1\}, \qquad j = 0, 1, \dots, k,
+\end{equation}
+de modo que, en particular, $C_0 = \{0, \dots, t_1 - 1\}$ y $C_k = \{t_k, \dots, 255\}$. Todo p\'ixel cuya intensidad pertenece a $C_j$ se asigna a la regi\'on $j$. Las clases $C_j$, al igual que las cantidades $\omega_j$ y $\mu_j$ definidas en la secci\'on siguiente, no son variables independientes, sino que quedan completamente determinadas por $\mathbf{t}$.
+
+\subsection{Funci\'on Objetivo}
+Para cada clase $C_j$ se definen su proporci\'on de p\'ixeles $\omega_j$ y su intensidad media $\mu_j$:
+\begin{equation}
+    \omega_j = \sum_{g \in C_j} p_g, \qquad
+    \mu_j = \frac{1}{\omega_j} \sum_{g \in C_j} g\, p_g \quad (\omega_j > 0).
+\end{equation}
+La calidad de una soluci\'on se mide mediante la varianza entre clases~\cite{Otsu1979}, la cual se busca maximizar:
+\begin{equation}
+    \max_{\mathbf{t}} \; f(\mathbf{t}) = \sum_{j=0}^{k} \omega_j \left( \mu_j - \mu_T \right)^2 .
+    \label{eq:otsu}
+\end{equation}
+
+En palabras, se busca el conjunto de umbrales que produzca regiones cuyas intensidades medias se encuentren lo m\'as alejadas posible de la intensidad media global, ponderando cada regi\'on seg\'un la proporci\'on de p\'ixeles que contiene. Un mayor valor de $f(\mathbf{t})$ indica regiones mejor separadas entre s\'i y, por lo tanto, una mejor segmentaci\'on. De forma equivalente, como la varianza total de la imagen $\sigma_T^2 = \sum_{g=0}^{255} (g - \mu_T)^2 p_g$ no depende de $\mathbf{t}$ y es igual a la suma de la varianza entre clases y la varianza intra-clase~\cite{Otsu1979}, maximizar $f(\mathbf{t})$ equivale a minimizar la varianza intra-clase, es decir, a obtener regiones internamente homog\'eneas.
+
+Una clase puede contener un rango de intensidades no vac\'io y, aun as\'i, no contener p\'ixeles ($\omega_j = 0$), en cuyo caso $\mu_j$ no est\'a definida. Se adopta la convenci\'on de que dicho t\'ermino aporta $0$ a la suma, lo cual es consistente, pues $\mu_j \in [0, 255]$ implica $\omega_j (\mu_j - \mu_T)^2 \leq 255^2\, \omega_j$, que tiende a $0$ cuando $\omega_j \to 0$.
+
+\subsection{Restricciones}
+\begin{itemize}
+    \item \textbf{Cota inferior:} $1 \leq t_1$. El primer umbral debe ser al menos 1, de modo que la clase $C_0$ contenga al menos el nivel de intensidad 0.
+    \item \textbf{Orden estricto:} $t_i < t_{i+1}, \ i = 1, \dots, k-1$. Los umbrales deben ser distintos y estar ordenados de forma creciente. Esto asegura que las clases sean intervalos disjuntos y no vac\'ios que, en conjunto, cubren todo el dominio $G$, por lo que cada nivel de intensidad pertenece a exactamente una regi\'on. Dado que los umbrales son enteros, esta restricci\'on equivale a $t_{i+1} \geq t_i + 1$.
+    \item \textbf{Cota superior:} $t_k \leq 254$. El \'ultimo umbral no puede superar el nivel 254, lo que acota los umbrales al rango de intensidades definido para el problema.
+    \item \textbf{Integralidad:} $t_i \in \mathbb{Z}, \ i = 1, \dots, k$. Los umbrales son enteros, ya que las intensidades de una imagen de 8 bits corresponden a niveles discretos.
+\end{itemize}
+
+\subsection{Modelo Completo}
+\begin{equation}
+    \begin{aligned}
+        \max_{\mathbf{t}} \quad & f(\mathbf{t}) = \sum_{j=0}^{k} \omega_j \left( \mu_j - \mu_T \right)^2 \\
+        \text{s.a.} \quad & 1 \leq t_1 < t_2 < \dots < t_k \leq 254, \\
+        & t_i \in \mathbb{Z}, \quad i = 1, \dots, k.
+    \end{aligned}
+\end{equation}
+
+\subsection{Espacio de B\'usqueda}
+El espacio de b\'usqueda corresponde al conjunto de soluciones factibles:
+\begin{equation}
+    S_k = \left\{ \mathbf{t} \in \mathbb{Z}^k : 1 \leq t_1 < t_2 < \dots < t_k \leq 254 \right\}.
+\end{equation}
+Cada soluci\'on factible equivale a escoger $k$ niveles de intensidad distintos entre 1 y 254 y ordenarlos de forma creciente, por lo que $|S_k| = \binom{254}{k}$, valor que crece del orden de $O(L^k)$ con el n\'umero de umbrales. La Tabla~\ref{tab:espacio} muestra el tama\~no del espacio para las tres configuraciones del problema.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ccc}
+        \hline
+        Umbrales ($k$) & Clases ($k+1$) & $|S_k| = \binom{254}{k}$ \\
+        \hline
+        2 & 3 & $32.131$ \\
+        4 & 5 & $169.362.501$ \\
+        6 & 7 & $351.427.189.575 \approx 3{,}51 \times 10^{11}$ \\
+        \hline
+    \end{tabular}
+    \caption{Tama\~no del espacio de b\'usqueda seg\'un el n\'umero de umbrales.}
+    \label{tab:espacio}
+\end{table}
+
+Pasar de $k = 4$ a $k = 6$ multiplica el espacio de b\'usqueda por $2.075$. Como referencia, Hammouche et al.~\cite{Hammouche2010Comparative} reportan que la b\'usqueda exhaustiva con 4 umbrales sobre im\'agenes de $256 \times 256$ p\'ixeles tom\'o entre 5 y 15 minutos aproximadamente. Para $k = 2$ una b\'usqueda exhaustiva resulta trivial, pero para $k = 6$ deja de ser pr\'actica, lo que motiva el uso de metaheur\'isticas.
+
+\section{Conclusiones}
+Si bien todas las t\'ecnicas estudiadas abordan la selecci\'on de umbrales a partir del histograma de una imagen, no resuelven exactamente el mismo problema.
+Los trabajos difieren en la funci\'on objetivo optimizada, como el criterio de Otsu en~\cite{Hammouche2010Comparative} y el de Kapur en~\cite{Manikandan2014Multilevel};
+en el tipo de im\'agenes utilizadas, desde im\'agenes naturales de prueba hasta MRI cerebrales ponderadas en T2, radiograf\'ias o CT~\cite{Lameesa2024Role};
+en el rango de umbrales considerado; y en las m\'etricas de evaluaci\'on, como el valor de la funci\'on objetivo, la desviaci\'on est\'andar, el tiempo de ejecuci\'on, la medida de uniformidad o el PSNR.
+Por esto, los resultados num\'ericos de distintos estudios no son directamente comparables entre s\'i.
+Adem\'as, el uso de metaheur\'isticas para ajustar modelos de Deep Learning~\cite{Lameesa2024Role} aborda la segmentaci\'on como un problema supervisado que requiere grandes conjuntos de im\'agenes anotadas~\cite{Fateh2026BRISC},
+lo cual constituye un problema distinto a la selecci\'on de umbrales.
+
+En el contexto del problema, las t\'ecnicas comparten una misma base: representan la soluci\'on como un vector de umbrales ordenados y eval\'uan su calidad mediante una funci\'on calculada sobre el histograma, por lo que el costo de evaluar una soluci\'on no depende del tama\~no de la imagen.
+Se diferencian principalmente en la forma de recorrer el espacio de b\'usqueda.
+Los algoritmos de soluci\'on \'unica, como SA y TS, modifican localmente una soluci\'on, mientras que los poblacionales, como GA, PSO y DE, combinan informaci\'on de m\'ultiples soluciones, lo que les permite escapar con mayor facilidad de los \'optimos locales que aparecen al aumentar el n\'umero de umbrales~\cite{Hammouche2010Comparative}.
+Tambi\'en difieren en la representaci\'on del valor de los umbrales y en los operadores utilizados, donde la codificaci\'on real junto a operadores adaptativos como SBX y la mutaci\'on polinomial ha mostrado resultados m\'as consistentes~\cite{Manikandan2014Multilevel}.
+
+En cuanto a sus limitaciones, ninguna metaheur\'istica garantiza encontrar el \'optimo global, y su desempe\~no depende de una adecuada calibraci\'on de par\'ametros~\cite{Hammouche2010Comparative, Lameesa2024Role}.
+Los estudios comparativos consideran versiones est\'andar de los algoritmos y pocas im\'agenes de prueba, que en algunos casos no son m\'edicas~\cite{Hammouche2010Comparative}; por su parte, los algoritmos h\'ibridos recientes mejoran la calidad de las soluciones a cambio de un mayor costo computacional~\cite{Lameesa2024Role}.
+Por \'ultimo, cabe destacar una limitaci\'on propia del enfoque: al trabajar \'unicamente sobre el histograma, la umbralizaci\'on no considera la ubicaci\'on espacial de los p\'ixeles, por lo que estructuras distintas con intensidades similares quedan asignadas a una misma regi\'on.
+Asimismo, un mayor valor de la funci\'on objetivo indica una mejor separaci\'on estad\'istica de las intensidades, pero no necesariamente una mejor delimitaci\'on de las estructuras de inter\'es cl\'inico.
+
+Entre las estrategias m\'as prometedoras destacan los algoritmos poblacionales con representaci\'on real: DE por la calidad de sus soluciones, PSO por su velocidad de convergencia~\cite{Hammouche2010Comparative} y el GA codificado en reales con SBX por su consistencia en MRI cerebrales~\cite{Manikandan2014Multilevel}.
+Para un mayor n\'umero de umbrales, los algoritmos h\'ibridos que mejoran el equilibrio entre exploraci\'on y explotaci\'on representan la tendencia m\'as reciente~\cite{Lameesa2024Role}.
+Considerando que este trabajo contempla hasta seis umbrales, una cantidad mayor a la evaluada en los estudios revisados, los algoritmos poblacionales constituyen un punto de partida natural.
+
+Como trabajo futuro, la literatura propone aplicar versiones m\'as sofisticadas de ACO y TS, extender la comparaci\'on a otras metaheur\'isticas como la b\'usqueda local iterada o la b\'usqueda en vecindarios variables, y explorar la hibridaci\'on entre ellas~\cite{Hammouche2010Comparative}.
+Como lineamientos propios, se propone:
+(i) obtener el \'optimo exacto para $k = 2$ y $k = 4$, cuyos espacios de b\'usqueda son abordables, con el fin de medir la brecha de cada metaheur\'istica respecto del \'optimo, y reservar el caso $k = 6$ para comparar las metaheur\'isticas entre s\'i;
+(ii) evaluar un mismo algoritmo bajo los criterios de Otsu y Kapur sobre las mismas im\'agenes, para separar el efecto de la funci\'on objetivo del efecto del algoritmo; y
+(iii) aprovechar m\'ascaras de segmentaci\'on elaboradas por expertos, como las del conjunto BRISC, que deriva en parte del mismo conjunto de Cheng~\cite{Fateh2026BRISC}, para verificar si las soluciones con mayor varianza entre clases delimitan efectivamente las estructuras de inter\'es.
+
+\section{Uso LLMs}
+\noindent En el desarrollo de este trabajo se utiliz\'o la siguiente herramienta de IA, de acuerdo con los lineamientos del proyecto:
+
+\begin{enumerate}
+\item \textbf{Herramienta utilizada:} Gemini (Flash).
+\item \textbf{Prop\'osito de uso:} Corregir ortograf\'ia, puntuaci\'on y adaptar las tildes al formato de \LaTeX{} (escape de caracteres) de los borradores redactados por el autor.
+\item \textbf{Prompts relevantes:} ``Corrige ortograf\'ia y puntuaci\'on sin alterar la redacci\'on del p\'arrafo: [Borrador]'' y ``Ay\'udame a declarar que ped\'i correcciones de ortograf\'ia y puntuaci\'on''.
+\item \textbf{Nivel de edici\'on:} El autor redact\'o de forma aut\'onoma los borradores. La IA sugiri\'o correcciones de ortograf\'ia y acentuaci\'on sin alterar la idea central. Se validaron las correcciones y se integr\'o el texto final al documento.
+\item \textbf{Validaci\'on:} Juicio propio del autor para asegurar que el tono, la precisi\'on t\'ecnica y la estructura cumplieran con la r\'ubrica del proyecto y el formato requerido.
+\end{enumerate}
+
+\bibliographystyle{plain}
+\bibliography{Referencias}
+
+\end{document}

@@ -9,6 +9,11 @@ en/
 build/*
 !build/.gitkeep
 
+# Latex
+tex/*/*
+!tex/*/*.tex
+!tex/*/*.bib
+
 # clangd
 .cache/
 compile_commands.json

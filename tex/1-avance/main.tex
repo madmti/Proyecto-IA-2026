@@ -1,0 +1,67 @@
+% Presentación - Estado de Avance (10 minutos).
+% Rúbrica: Representación y restricciones (20 %), Algoritmo (60 %),
+% Conclusiones (10 %), Otros (10 %: referencias, gráficos, duración).
+\documentclass[aspectratio=169, 10pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{graphicx}
+
+\usetheme{Madrid}
+\setbeamertemplate{bibliography item}[text]
+
+\title{Segmentación multiumbral de imágenes MRI}
+\subtitle{Greedy + Tabú Search --- Estado de avance}
+\author{Matías Peñaloza}
+\institute{Inteligencia Artificial 2026-2}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% ---------------------------------------------------------------- 0:00-1:30
+\begin{frame}{Problema, representación y restricciones}
+  % TODO: variables t = (t_1, ..., t_k), dominio, restricciones
+  %       1 <= t_1 < ... < t_k <= 254, función objetivo de Otsu~\cite{Otsu1979}.
+\end{frame}
+
+% ---------------------------------------------------------------- 1:30-3:00
+\begin{frame}{Lectura, función de evaluación y salida}
+  % TODO: lectura/validación de instancias, sumas de prefijo (O(k) por
+  %       evaluación), archivos de salida; evidencia de que funciona en 30/30.
+\end{frame}
+
+% ---------------------------------------------------------------- 3:00-5:00
+\begin{frame}{Solución inicial: Greedy}
+  % TODO: criterio final y por qué falló la primera versión (historia del
+  %       diseño); gráfico de brecha por criterio.
+\end{frame}
+
+% ---------------------------------------------------------------- 5:00-7:30
+\begin{frame}{Tabú Search: movimientos y diseño}
+  % TODO: vecindario ±1, lista tabú y tenencia, aspiración, caso "todos
+  %       tabú"; justificación de cada decisión~\cite{Hammouche2010Comparative}.
+\end{frame}
+
+% ---------------------------------------------------------------- 7:30-9:00
+\begin{frame}{Calidad y tiempos}
+  % TODO: tabla/gráfico de brecha contra el óptimo exacto (k=2, 4 y
+  %       k=6 en una imagen) y tiempos en escala logarítmica.
+\end{frame}
+
+% ---------------------------------------------------------------- 9:00-10:00
+\begin{frame}{Conclusiones y trabajo restante}
+  % TODO: conclusiones acordes a lo expuesto y trabajo que falta.
+\end{frame}
+
+\begin{frame}[allowframebreaks]{Referencias}
+  \nocite{Otsu1979, Hammouche2010Comparative}
+  \bibliographystyle{plain}
+  \bibliography{Referencias}
+\end{frame}
+
+\end{document}
