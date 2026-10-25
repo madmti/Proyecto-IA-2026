@@ -31,7 +31,7 @@
 % ---------------------------------------------------------------- 0:00-1:30
 \begin{frame}{Problema, representación y restricciones}
   \textbf{Problema:} Dado un histograma de 256 niveles y un $k$ fijo, elegir $k$
-  umbrales que maximicen la varianza entre clases segun el criterio de
+  umbrales que maximicen la varianza entre clases según el criterio de
   Otsu~\cite{Otsu1979}.
 
   \textbf{Representación de una solución:}
@@ -42,7 +42,7 @@
   \textbf{Restricciones:}
   \begin{itemize}
     \item Cota inferior: $1 \leq t_1$
-    \item Monotonia estricta: $t_i < t_{i+1}\ \forall\, i = 1, \ldots, k-1$
+    \item Monotonía estricta: $t_i < t_{i+1}\ \forall\, i = 1, \ldots, k-1$
     \item Cota superior: $t_k \leq 254$
   \end{itemize}
 
@@ -102,7 +102,7 @@ void greedy(std::vector<int> &umbrales, double &facc, int k, const otsu::TablaOt
 \begin{frame}[fragile]{Problema, representación y restricciones}
   \textbf{Manejo de restricciones --- Reparación de la solución:}
 
-  Tabu search filtra los valores posibles para los vecinos entre la cota superior e inferior. Asegura monotonía estricta usando pasos de $\pm 1$ y filtrando vecinos que ya existan en el vector de umbrales ($t_i + \text{mov} \notin t$).
+  Tabú search filtra los valores posibles para los vecinos entre la cota superior e inferior. Asegura monotonía estricta usando pasos de $\pm 1$ y filtrando vecinos que ya existan en el vector de umbrales ($t_i + \text{mov} \notin t$).
 \begin{minted}[fontsize=\scriptsize, highlightlines={7-10,15-16}]{cpp}
 std::vector<std::tuple<int, int>> generarVecinos(std::vector<int> &actual, int size) {
   std::vector<std::tuple<int, int>> vecinos;
@@ -339,7 +339,7 @@ ms_reparacion 0.184348
       \textbf{Conclusiones}
       \begin{itemize}
         \item El Greedy fue un buen punto de partida
-        \item El Tabú Search fue efectivo y no se quedó atrapado en óptimos locales, como se describe en la literatura, solo para las 23 instancias comprobadas
+        \item El Tabú Search fue efectivo y no se quedó atrapado en óptimos locales, como se describe en~\cite{Hammouche2010Comparative}, solo para las 23 instancias comprobadas
         \item Comparar con el óptimo global obtenido de la exhaustiva sirvió para guiar correctamente las estrategias de ambos algoritmos, Greedy y Tabú
       \end{itemize}
     \end{column}
