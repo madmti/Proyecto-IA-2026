@@ -17,7 +17,7 @@ void greedy(std::vector<int> &umbrales, double &facc, int k,
 			const otsu::TablaOtsu &tabla, std::mt19937 &gen) {
 	int size = static_cast<int>(umbrales.size());
 	if (size >= k + 1) {
-		facc += otsu::fTerm(tabla, umbrales.back(), 255);
+		facc += otsu::fTerm(tabla, umbrales.back(), 256);
 		return;
 	}
 	int cotainf = umbrales.back() + 1, cota_sup = 254 - k + size;
@@ -27,7 +27,7 @@ void greedy(std::vector<int> &umbrales, double &facc, int k,
 		double aporte = otsu::fTerm(tabla, umbrales.back(), um);
 
 		// Incluir el aporte simulado de toda la masa restante
-		aporte += otsu::fTerm(tabla, um, 255);
+		aporte += otsu::fTerm(tabla, um, 256);
 
 		if (aporte > max) {
 			max = aporte;
