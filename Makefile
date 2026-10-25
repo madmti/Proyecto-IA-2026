@@ -23,7 +23,7 @@ DEPS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.d,$(PROGRAMAS_SRC) $(COMUNES_SR
 TEX_DIR = tex
 TEX_ENTREGAS = 0-estado-del-arte 1-avance 2-implementacion 3-final
 TEX_PDFS := $(foreach e,$(TEX_ENTREGAS),$(TEX_DIR)/$(e)/main.pdf)
-PDFLATEX = pdflatex -interaction=nonstopmode -halt-on-error
+PDFLATEX = pdflatex -shell-escape -interaction=nonstopmode -halt-on-error
 BIBTEX = bibtex
 TEX_AUX = aux log bbl blg out toc nav snm vrb lof lot fls fdb_latexmk synctex.gz
 
@@ -80,7 +80,7 @@ clean-datos:
 	$(RM) -r $(DATA_PREPROCESADO)/imagenes $(DATA_PREPROCESADO)/instancias $(PREPROCESADO_STAMP)
 
 clean-tex:
-	@for e in $(TEX_ENTREGAS); do for x in $(TEX_AUX); do $(RM) $(TEX_DIR)/$$e/*.$$x; done; done
+	@for e in $(TEX_ENTREGAS); do for x in $(TEX_AUX); do $(RM) $(TEX_DIR)/$$e/*.$$x; done; $(RM) -r $(TEX_DIR)/$$e/_minted* $(TEX_DIR)/$$e/_minted; done
 
 distclean-tex: clean-tex
 	$(RM) $(TEX_PDFS)

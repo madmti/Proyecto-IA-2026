@@ -7,6 +7,9 @@
 \usepackage[spanish]{babel}
 \usepackage{amsmath}
 \usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[cache=true]{minted}
+\setminted{fontsize=\normalsize, style=vs, bgcolor=gray!8, linenos=false, breaklines=true, highlightcolor=yellow!45}
 
 \usetheme{Madrid}
 \setbeamertemplate{bibliography item}[text]
@@ -25,14 +28,107 @@
 
 % ---------------------------------------------------------------- 0:00-1:30
 \begin{frame}{Problema, representación y restricciones}
-  % TODO: variables t = (t_1, ..., t_k), dominio, restricciones
-  %       1 <= t_1 < ... < t_k <= 254, función objetivo de Otsu~\cite{Otsu1979}.
+  \textbf{Problema:} Dado un histograma de 256 niveles y un $k$ fijo, elegir $k$
+  umbrales que maximicen la varianza entre clases segun el criterio de
+  Otsu~\cite{Otsu1979}.
+
+  \textbf{Representación de una solución:}
+  $t = (t_1, t_2, \ldots, t_k)$ un vector de $k$ umbrales
+
+  \textbf{Dominios:} $\forall\, t_i \in \{1, \ldots, 254\} \subset \mathbb{Z}$
+
+  \textbf{Restricciones:}
+  \begin{itemize}
+    \item Cota inferior: $1 \leq t_1$
+    \item Monotonia estricta: $t_i < t_{i+1}\ \forall\, i = 1, \ldots, k-1$
+    \item Cota superior: $t_k \leq 254$
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Problema, representación y restricciones}
+  \textbf{Implementación:}
+  \begin{itemize}
+    \item Instancia:
+    \begin{itemize}
+      \item \texttt{std::array<unsigned long long, 256> histograma}
+      \item \texttt{int k}
+    \end{itemize}
+    \item Solución: \texttt{std::vector<int> umbrales}
+    \begin{itemize}
+      \item No garantiza orden en los umbrales (\texttt{std::set}) pero es mejor en la reparación
+      \item No tiene tamaño fijo a pesar de un $k$ fijo (\texttt{std::array}) pero es mejor en la generación
+      \item Garantiza umbrales enteros
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Problema, representación y restricciones}
+  \textbf{Manejo de restricciones --- Generación de solución inicial:}
+
+  Greedy busca secuencialmente los umbrales, se inserta uno artificial 0 al inicio del vector
+\begin{minted}[highlightlines={2,5}]{cpp}
+std::vector<int> generarSolucionInicial(...) {
+  std::vector<int> umbrales = {0};
+  ..
+  greedy(umbrales, f, instancia.k, tabla, gen);
+  umbrales.erase(umbrales.begin());
+  return umbrales;
+}
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Problema, representación y restricciones}
+  \textbf{Manejo de restricciones --- Generación de solución inicial:}
+
+  En cada iteración se setea la cota inferior con respecto al umbral anterior que conserva la monotonía y una cota superior hasta el máximo posible para cada umbral.
+\begin{minted}[highlightlines={4,6}]{cpp}
+void greedy(std::vector<int> &umbrales, double &facc, int k, const otsu::TablaOtsu &tabla, std::mt19937 &gen) {
+  int size = static_cast<int>(umbrales.size());
+  ..
+  int cotainf = umbrales.back() + 1, cota_sup = 254 - k + size;
+  ..
+  for (int um = cotainf; um <= cota_sup; um++) {
+    ..
+  };
+  ..
+  greedy(umbrales, facc, k, tabla, gen);
+}
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]{Problema, representación y restricciones}
+  \textbf{Manejo de restricciones --- Reparación de la solución:}
+
+  Tabu search filtra los valores posibles para los vecinos entre la cota superior e inferior. Asegura monotonía estricta usando pasos de $\pm 1$ y filtrando vecinos que ya existan en el vector de umbrales ($t_i + \text{mov} \notin t$).
+\begin{minted}[fontsize=\scriptsize, highlightlines={7-10,15-16}]{cpp}
+std::vector<std::tuple<int, int>> generarVecinos(std::vector<int> &actual, int size) {
+  std::vector<std::tuple<int, int>> vecinos;
+
+  auto agregarVecinos = [&actual, &vecinos, &size](int mov) {
+    for (int i = 0; i < size; i++) {
+      int val = actual[i] + mov;
+      if (val < 1 || val > 254)
+        continue;
+      if (std::find(actual.begin(), actual.end(), val) != actual.end())
+        continue;
+      ..
+    }
+  };
+
+  agregarVecinos(1);
+  agregarVecinos(-1);
+  return vecinos;
+}
+\end{minted}
 \end{frame}
 
 % ---------------------------------------------------------------- 1:30-3:00
 \begin{frame}{Lectura, función de evaluación y salida}
-  % TODO: lectura/validación de instancias, sumas de prefijo (O(k) por
-  %       evaluación), archivos de salida; evidencia de que funciona en 30/30.
+  % TODO: lectura/validación de instancias, tablas de sumas acumuladas
+  %       precalculadas (O(256) una vez, luego O(k) por evaluación)
+  %       \cite{Liao2001Fast}, archivos de salida; evidencia de que funciona
+  %       en 30/30.
 \end{frame}
 
 % ---------------------------------------------------------------- 3:00-5:00
@@ -59,7 +155,7 @@
 \end{frame}
 
 \begin{frame}[allowframebreaks]{Referencias}
-  \nocite{Otsu1979, Hammouche2010Comparative}
+  \nocite{Otsu1979, Hammouche2010Comparative, Liao2001Fast}
   \bibliographystyle{plain}
   \bibliography{Referencias}
 \end{frame}
