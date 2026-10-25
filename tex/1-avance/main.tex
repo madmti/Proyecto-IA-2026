@@ -8,6 +8,8 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing}
 \usepackage[cache=true]{minted}
 \setminted{fontsize=\normalsize, style=vs, bgcolor=gray!8, linenos=false, breaklines=true, highlightcolor=yellow!45}
 
@@ -124,40 +126,289 @@ std::vector<std::tuple<int, int>> generarVecinos(std::vector<int> &actual, int s
 \end{frame}
 
 % ---------------------------------------------------------------- 1:30-3:00
-\begin{frame}{Lectura, función de evaluación y salida}
-  % TODO: lectura/validación de instancias, tablas de sumas acumuladas
-  %       precalculadas (O(256) una vez, luego O(k) por evaluación)
-  %       \cite{Liao2001Fast}, archivos de salida; evidencia de que funciona
-  %       en 30/30.
+\begin{frame}[fragile]{Lectura de la instancia}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item Un archivo \texttt{.txt} por instancia, generado por \texttt{preprocesar} (imagen $\rightarrow$ histograma)
+        \item Almacenamiento interno: \texttt{struct io::Instancia}
+        \begin{itemize}
+          \item \texttt{histograma}: \texttt{std::array<unsigned long long, 256>}
+          \item \texttt{k}, \texttt{N}, \texttt{ancho}, \texttt{alto}, \texttt{L}
+        \end{itemize}
+        \item \texttt{validarInstancia}:
+        \begin{itemize}
+          \item $L = 256$
+          \item $N = \text{ancho} \cdot \text{alto}$
+          \item $1 \leq k \leq 254$
+          \item $\sum_g \text{hist}[g] = N$
+        \end{itemize}
+        \item Archivo inválido: \texttt{std::runtime\_error} con la ruta
+        \item Funciona en 30/30 instancias (10 imágenes, $k \in \{2,4,6\}$)
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+\begin{minted}[fontsize=\scriptsize]{text}
+SEGMENTACION_MULTIUMBRAL_V1
+imagen imagen_01.jpg
+ancho 256
+alto 256
+L 256
+k 2
+N 65536
+histograma
+18267 893 8040 7258 2459 1177 591 427 ...
+\end{minted}
+      {\scriptsize \texttt{imagen\_01\_k2.txt}}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Función de evaluación}
+  \textbf{Objetivo:} $f(t) = \sum_{j=0}^{k} \omega_j (\mu_j - \mu_T)^2$ con clases $C_j = [t_j, t_{j+1})$, $t_0 = 0$, $t_{k+1} = 256$
+
+  \textbf{Problema:} evaluar directo cuesta $O(256)$ por solución, y la búsqueda evalúa miles.
+
+  \textbf{Solución:} tablas de sumas acumuladas \texttt{acumP} y \texttt{acumGP}~\cite{Liao2001Fast}
+  \begin{itemize}
+    \item Se calculan una vez: $O(256)$
+    \item Cada clase es una resta de dos prefijos: evaluar cuesta $O(k)$
+    \item Clase vacía ($\omega_j = 0$): aporta $0$
+    \item Verificada contra una implementación directa
+  \end{itemize}
+
+  \vspace{0.3em}
+  \begin{center}
+  \begin{tikzpicture}[x=0.045cm, y=1cm]
+    \draw[->] (-2,0) -- (262,0);
+    \foreach \x/\l in {0/0, 255/255} { \draw (\x,-0.1) -- (\x,0.1); \node[below] at (\x,-0.1) {\scriptsize $\l$}; }
+    \foreach \x/\l in {80/t_1, 170/t_2} {
+      \draw[thick, red] (\x,-0.25) -- (\x,0.25);
+      \node[below, red] at (\x,-0.25) {\small $\l$};
+    }
+    \node[above] at (40,0.1)  {\small $C_0 = [0, t_1)$};
+    \node[above] at (125,0.1) {\small $C_1 = [t_1, t_2)$};
+    \node[above] at (215,0.1) {\small $C_2 = [t_2, 256)$};
+    \draw[decorate, decoration={brace, amplitude=4pt, mirror}] (80,-0.9) -- (170,-0.9)
+      node[midway, below=5pt] {\small $\omega_1 = \mathrm{acumP}[t_2 - 1] - \mathrm{acumP}[t_1 - 1]$};
+  \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Salida}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item Un archivo por instancia: \texttt{soluciones/<instancia>.txt}
+        \item Formato \texttt{SOLUCION\_MULTIUMBRAL\_V1}:
+        \begin{itemize}
+          \item Semilla
+          \item Solución inicial: umbrales y $f$
+          \item Solución final: umbrales y $f$
+          \item Tiempos (ms) de cada etapa
+        \end{itemize}
+        \item 30/30 archivos escritos
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+\begin{minted}[fontsize=\scriptsize]{text}
+SOLUCION_MULTIUMBRAL_V1
+instancia imagen_01_k2.txt
+imagen imagen_01.jpg
+k 2
+semilla 42
+f_inicial 1982.9194099403
+umbrales_inicial 50 111
+f_final 1996.3871352809
+umbrales_final 40 108
+ms_inicial 0.004241
+ms_reparacion 0.184348
+\end{minted}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 % ---------------------------------------------------------------- 3:00-5:00
 \begin{frame}{Solución inicial: Greedy}
-  % TODO: criterio final y por qué falló la primera versión (historia del
-  %       diseño); gráfico de brecha por criterio.
+  \begin{itemize}
+    \item Construye la solución de forma secuencial, partiendo con \texttt{umbrales = \{0\}} (umbral artificial)
+    \item Dado el umbral anterior $t_{i-1}$, prueba cada candidato $t_i'$ con
+    \[ t_i' \in [\,t_{i-1}+1,\ 254-k+i\,] \]
+    (la cota superior deja espacio a los $k-i$ umbrales restantes)
+    \item Aporte de cada candidato:
+    \[ a(t_i') = f_T(t_{i-1}, t_i') + f_T(t_i', 256) \]
+    clase que se cierra $+$ toda la masa restante tratada como una sola clase abierta
+    \item Elige el mayor aporte; en caso de empate, al azar con una semilla
+    \item Termina con $k$ umbrales (más el 0, que se retira)
+  \end{itemize}
+  \textbf{Coherencia:} usa el mismo $f_T$ y las mismas tablas de la evaluación ($O(1)$ por candidato) y es factible por construcción.
+
+  \textbf{Evidencia:} 30/30 soluciones iniciales cumplen las restricciones; $\approx 0.004$ ms por instancia.
+\end{frame}
+
+\begin{frame}{Greedy: historia del diseño}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{enumerate}
+        \item \textbf{Ingenuo:} aporte $= f_T(t_{i-1}, t_i')$
+        \begin{itemize}
+          \item Ignora el efecto sobre la clase abierta
+          \item Empuja los umbrales a la cola vacía del histograma
+          \item $k = 2, 4, 6$ dan casi el mismo $f$
+        \end{itemize}
+        \item \textbf{Equiespaciar} la masa restante: casi no mejora
+        \item \textbf{Sumar la masa restante} como una clase: $f_T(t_i', 256)$
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      {\small Brecha respecto al óptimo exacto (\%)}\\[0.3em]
+      \begin{tikzpicture}[x=0.17cm, y=0.8cm]
+        \draw[->] (0,0) -- (32,0);
+        \foreach \x in {0,10,20,30} { \draw (\x,-0.08) -- (\x,0.08); \node[below] at (\x,-0.08) {\scriptsize \x}; }
+        \fill[red!60]    (19,3) rectangle (30,3.6);
+        \fill[orange!70] (13,2) rectangle (23,2.6);
+        \fill[green!50!black] (0.2,1) rectangle (4,1.6);
+        \node[left]  at (0,3.3) {\scriptsize 1};
+        \node[left]  at (0,2.3) {\scriptsize 2};
+        \node[left]  at (0,1.3) {\scriptsize 3};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 % ---------------------------------------------------------------- 5:00-7:30
 \begin{frame}{Tabú Search: movimientos y diseño}
-  % TODO: vecindario ±1, lista tabú y tenencia, aspiración, caso "todos
-  %       tabú"; justificación de cada decisión~\cite{Hammouche2010Comparative}.
+  \begin{itemize}
+    \item Recibe la solución inicial $t = (t_1, \ldots, t_k)$ del Greedy
+    \item \textbf{Movimiento:} sumar o restar 1 a un umbral $\Rightarrow$ a lo más $2k$ vecinos
+    \begin{itemize}
+      \item Se descartan los vecinos fuera de $[1, 254]$ o que repiten un umbral existente (factibles)
+      \item Conserva el orden estricto y cambia solo dos clases
+    \end{itemize}
+    \item \textbf{Lista tabú:} cola FIFO de tuplas $(i, v)$, con $i$ el índice del umbral y $v$ el valor al que llegó
+    \begin{itemize}
+      \item Prohíbe volver a poner el umbral $i$ en el valor $v$
+      \item Parte con los valores iniciales $(i, t_i)$ y guarda $k + T$ pares, con $T = 10$
+    \end{itemize}
+    \item \textbf{Selección:} el mejor vecino no tabú, aunque empeore la función objetivo
+    \begin{itemize}
+      \item \textbf{Aspiración:} un vecino tabú se acepta si supera al mejor valor observado
+      \item Si todos son tabú, se elige el mejor de los tabú
+    \end{itemize}
+    \item \textbf{Término:} 1000 iteraciones; devuelve la mejor solución observada, no la última
+  \end{itemize}
 \end{frame}
 
-% ---------------------------------------------------------------- 7:30-9:00
-\begin{frame}{Calidad y tiempos}
-  % TODO: tabla/gráfico de brecha contra el óptimo exacto (k=2, 4 y
-  %       k=6 en una imagen) y tiempos en escala logarítmica.
+\begin{frame}{Tabú Search: historia del diseño}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{enumerate}
+        \item \textbf{Tenencia $T$:} con $2k-1$, \texttt{imagen\_10} ($k=4$) quedaba a $0.78\%$ del óptimo; con $T \geq 8$ llega al óptimo. Se usó $T = 10$.
+        \item \textbf{Iteraciones:} con 100 no alcanza, $k=6$ necesita al menos 500. Se usan 1000.
+      \end{enumerate}
+      \vspace{0.3em}
+      {\small Tabú alcanza el óptimo exacto en 23/23 instancias con óptimo conocido.}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \centering
+      {\small Brecha máxima (\%) vs. iteraciones}\\[0.3em]
+      \begin{tikzpicture}[x=0.0062cm, y=1.1cm]
+        \draw[->] (0,0) -- (1060,0);
+        \draw[->] (0,0) -- (0,2.1);
+        \foreach \x in {100,300,500,1000} { \draw (\x,-0.06) -- (\x,0.06); \node[below] at (\x,-0.06) {\scriptsize \x}; }
+        \foreach \y in {0,1,2} { \draw (-8,\y) -- (8,\y); \node[left] at (-8,\y) {\scriptsize \y}; }
+        \draw[thick, green!50!black] (100,0.02) -- (200,0.02) -- (300,0.02) -- (500,0.02) -- (1000,0.02);
+        \draw[thick, blue] (100,1.07) -- (200,0) -- (300,0) -- (500,0) -- (1000,0);
+        \draw[thick, red] (100,1.82) -- (200,0.78) -- (300,0.35) -- (500,0) -- (1000,0);
+        \foreach \x/\y/\c in {100/0.02/green!50!black,100/1.07/blue,100/1.82/red,200/0.78/red,300/0.35/red} { \fill[\c] (\x,\y) circle (1.8pt); }
+        \node[red, right] at (110,1.9) {\scriptsize $k=6$};
+        \node[blue, right] at (110,1.12) {\scriptsize $k=4$};
+        \node[green!50!black, above] at (800,0.05) {\scriptsize $k=2$};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
 \end{frame}
+
+
 
 % ---------------------------------------------------------------- 9:00-10:00
 \begin{frame}{Conclusiones y trabajo restante}
-  % TODO: conclusiones acordes a lo expuesto y trabajo que falta.
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \textbf{Conclusiones}
+      \begin{itemize}
+        \item El Greedy fue un buen punto de partida
+        \item El Tabú Search fue efectivo y no se quedó atrapado en óptimos locales, como se describe en la literatura, solo para las 23 instancias comprobadas
+        \item Comparar con el óptimo global obtenido de la exhaustiva sirvió para guiar correctamente las estrategias de ambos algoritmos, Greedy y Tabú
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \textbf{Trabajo restante}
+      \begin{itemize}
+        \item Extender a más casos de prueba
+        \item Tratar las 7 instancias de $k=6$ sin óptimo exacto
+        \item Estudiar la sensibilidad de $T$ y de las iteraciones
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \begin{frame}[allowframebreaks]{Referencias}
   \nocite{Otsu1979, Hammouche2010Comparative, Liao2001Fast}
   \bibliographystyle{plain}
   \bibliography{Referencias}
+\end{frame}
+
+\appendix
+
+% Anexo para preguntas: no se presenta (no lo exige la rúbrica).
+\begin{frame}{Anexo: calidad y tiempos}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \centering
+      {\small Brecha respecto al óptimo exacto}\\[0.3em]
+      \small
+      \begin{tabular}{cccc}
+        $k$ & Inst. & Greedy & Greedy + Tabú \\ \hline
+        2 & 10 & 0.18--1.20 \% & 0 \% \\
+        4 & 10 & 1.98--4.13 \% & 0 \% \\
+        6 & 3 & 3.76--4.62 \% & 0 \% \\
+      \end{tabular}
+
+      \vspace{0.5em}
+      {\footnotesize Óptimo exacto en 23 de 30 instancias; para las otras 7 de $k=6$ no hay referencia.}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \centering
+      {\small Tiempo por instancia (ms, escala logarítmica)}\\[0.3em]
+      \begin{tikzpicture}[x=0.38cm, y=0.33cm]
+        \draw[->] (-0.1,0) -- (-0.1,10.5);
+        \draw (-0.1,0) -- (14.5,0);
+        \draw (-0.15,0) -- (0.05,0); \node[left] at (-0.15,0) {\scriptsize $10^{-3}$};
+        \draw (-0.15,2) -- (0.05,2); \node[left] at (-0.15,2) {\scriptsize $10^{-1}$};
+        \draw (-0.15,4) -- (0.05,4); \node[left] at (-0.15,4) {\scriptsize $10^{1}$};
+        \draw (-0.15,6) -- (0.05,6); \node[left] at (-0.15,6) {\scriptsize $10^{3}$};
+        \draw (-0.15,8) -- (0.05,8); \node[left] at (-0.15,8) {\scriptsize $10^{5}$};
+        \draw (-0.15,10) -- (0.05,10); \node[left] at (-0.15,10) {\scriptsize $10^{7}$};
+        \fill[blue!60] (0.0,0) rectangle (1.0,0.48);
+        \fill[green!50!black] (1.2,0) rectangle (2.2,2.23);
+        \fill[red!70] (2.4,0) rectangle (3.4,2.90);
+        \node[below] at (1.7,-0.05) {\scriptsize $k=2$};
+        \fill[blue!60] (5.0,0) rectangle (6.0,0.60);
+        \fill[green!50!black] (6.2,0) rectangle (7.2,2.52);
+        \fill[red!70] (7.4,0) rectangle (8.4,6.61);
+        \node[below] at (6.7,-0.05) {\scriptsize $k=4$};
+        \fill[blue!60] (10.0,0) rectangle (11.0,0.60);
+        \fill[green!50!black] (11.2,0) rectangle (12.2,2.69);
+        \fill[red!70] (12.4,0) rectangle (13.4,9.92);
+        \node[below] at (11.7,-0.05) {\scriptsize $k=6$};
+        \fill[blue!60] (0,11.6) rectangle (0.6,12.2); \node[right] at (0.7,11.9) {\scriptsize Greedy};
+        \fill[green!50!black] (4.4,11.6) rectangle (5,12.2); \node[right] at (5.1,11.9) {\scriptsize Tabú};
+        \fill[red!70] (7.8,11.6) rectangle (8.4,12.2); \node[right] at (8.5,11.9) {\scriptsize Exhaustiva};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \end{document}
