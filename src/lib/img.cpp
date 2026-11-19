@@ -97,9 +97,10 @@ Segmentacion segmentar(const cv::Mat &imagen, const vector<int> &umbrales) {
 	validarUmbrales(umbrales);
 	array<unsigned char, 256> etiquetas{}, tonos{};
 	for (int g = 0; g < 256; ++g) {
-		// Un pixel igual al umbral pertenece a la clase inferior.
+		// Clases [t_j, t_{j+1}), como en otsu::fTerm: un pixel igual al
+		// umbral t_j pertenece a la clase j (la superior).
 		auto clase =
-			lower_bound(umbrales.begin(), umbrales.end(), g) - umbrales.begin();
+			upper_bound(umbrales.begin(), umbrales.end(), g) - umbrales.begin();
 		etiquetas[g] = static_cast<unsigned char>(clase);
 		tonos[g] = static_cast<unsigned char>(
 			cvRound(255.0 * clase / umbrales.size()));
