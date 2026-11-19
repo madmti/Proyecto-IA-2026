@@ -291,7 +291,7 @@ Las soluciones se evalúan con la formulación separable~\eqref{eq:separable}. A
 \subsection{Solución inicial: Greedy}
 El Greedy construye los umbrales de izquierda a derecha (Figura~\ref{fig:pseudocodigo}, arriba). Para elegir el umbral $t_i$, prueba cada candidato $u$ entre $t_{i-1} + 1$ y $254 - k + i$; esta cota superior deja espacio para los $k - i$ umbrales restantes, por lo que la solución es factible por construcción. Cada candidato se puntúa con el aporte de la clase que cierra, $\varphi(t_{i-1}, u)$, más el de todos los niveles restantes tratados como una sola clase, $\varphi(u, 256)$. Se elige el candidato de mayor puntaje y los empates se resuelven al azar con una semilla. El costo total es $O(kL)$.
 
-El puntaje se definió tras dos intentos fallidos. Puntuar solo la clase que se cierra ignora el efecto sobre el resto del histograma y empuja los umbrales hacia la cola vacía de intensidades altas: las soluciones con $k = 2$, 4 y 6 tenían casi el mismo valor de $f$. Repartir de manera uniforme los niveles restantes casi no mejoró. Ambos intentos quedaban a más de un 10\,\% del óptimo, mientras que el puntaje final deja al Greedy entre un 0,2\,\% y un 4,6\,\% del óptimo.
+El puntaje se definió tras dos intentos fallidos. Puntuar solo la clase que se cierra ignora el efecto sobre el resto del histograma y empuja los umbrales hacia la cola vacía de intensidades altas: las soluciones con $k = 2$, 4 y 6 tenían casi el mismo valor de $f$. Repartir de manera uniforme los niveles restantes casi no mejoró. Ambos intentos quedaban a más de un 10\,\% del óptimo, mientras que el puntaje final deja al Greedy entre un 0,2\,\% y un 5,5\,\% del óptimo en las 30 instancias (Sección~\ref{sec:resultados}).
 
 \begin{figure}[t]
     \centering
@@ -345,7 +345,21 @@ El Greedy y la selección del mejor vecino intensifican la búsqueda: la primera
 
 \section{Experimentos}
 \label{sec:experimentos}
-% TODO: instancias, parámetros, entorno de ejecución.
+Los experimentos buscan responder cuatro preguntas: (i) qué tan cerca del óptimo global quedan el Greedy y Greedy + TS; (ii) cómo influyen la tenencia $T$ y el número de iteraciones en esa calidad; (iii) cómo evoluciona la búsqueda a lo largo de las iteraciones; y (iv) cuánto tiempo requiere cada etapa.
+
+\paragraph{Instancias.} Se usan 10 imágenes MRI cerebrales del \textit{Brain Tumor Dataset}~\cite{Cheng2017BrainTumor}, de $512 \times 512$ píxeles. Cada una se convierte a escala de grises, se reduce a $256 \times 256$ píxeles promediando áreas y se guarda con 8 bits de profundidad. Una instancia es el histograma de 256 niveles de una imagen junto con un valor de $k \in \{2, 4, 6\}$, lo que da 30 instancias. Las imágenes comparten una estructura similar: cerca del 28\,\% de los píxeles corresponde al fondo negro (nivel 0) y tienen entre 12 y 36 niveles sin píxeles. La dificultad de cada instancia crece con $k$, según el tamaño del espacio de búsqueda de la Tabla~\ref{tab:espacio}.
+
+\paragraph{Referencia de calidad.} El óptimo global $f^*$ de cada instancia se calcula mediante programación dinámica (Sección~\ref{sec:separable}). Se verificó que coincide, en umbrales y valor, con la búsqueda exhaustiva en las 23 instancias en que esta se ejecutó (todas las de $k \leq 4$ y tres de $k = 6$).
+
+\paragraph{Indicadores.} Para cada ejecución se registran el valor $f$ de la solución, la brecha respecto del óptimo, $100\,(f^* - f)/f^*$ (en \%), y el tiempo de cada etapa. Se considera que una ejecución alcanza el óptimo si su brecha es menor que $10^{-9}$\,\%.
+
+\paragraph{Parámetros.} El algoritmo tiene dos parámetros: la tenencia $T$ y el número de iteraciones, que es el criterio de término. La configuración base, $T = 10$ y 1.000 iteraciones, se fijó durante el desarrollo probando valores sobre las instancias con óptimo conocido. Para estudiar su efecto de forma sistemática, se resolvieron las 30 instancias con todas las combinaciones de $T \in \{0, 2, 5, 10, 15, 20, 30, 40\}$ e iteraciones $\in \{50, 100, 200, 500, 1.000, 2.000\}$: 48 configuraciones y 1.440 ejecuciones. Además, para cada valor de $T$ se registró la traza de convergencia de TS, es decir, el valor de la solución actual y el de la mejor encontrada en cada iteración, durante 2.000 iteraciones.
+
+\paragraph{Ejecuciones y semillas.} El algoritmo es determinista: la semilla solo desempata candidatos del Greedy con el mismo puntaje, y TS no tiene componentes aleatorios. En la práctica la semilla no influye: las semillas 42, 7 y 123 producen exactamente las mismas 30 soluciones. Por ello, se realiza una sola ejecución por configuración e instancia, y la variabilidad se estudia a través de los parámetros y de las instancias, en lugar de repetir ejecuciones con distintas semillas.
+
+\paragraph{Entorno.} El código se implementó en C++17 y se compiló con g++ 16.2.1 y optimización \texttt{-O2}. Las pruebas se ejecutaron en un procesador Intel Core i5-13420H con 15\,GB de memoria, bajo Linux. Los tiempos se miden con un reloj monótono y excluyen la lectura y escritura de archivos; las trazas se registran en memoria y se escriben fuera del tiempo medido.
+
+\paragraph{Comparación con el estado del arte.} No se ejecutan los métodos de la literatura. Se comparan las tendencias observadas con los resultados reportados por Hammouche et al.~\cite{Hammouche2010Comparative}, que usaron el mismo criterio de Otsu sobre otras imágenes, con 1 a 4 umbrales. Como las imágenes y los entornos difieren, la comparación se limita a si cada método alcanza el óptimo y cómo cambia su desempeño con el número de umbrales, sin comparar valores de $f$ ni tiempos.
 
 \section{Resultados}
 \label{sec:resultados}
