@@ -241,14 +241,45 @@ lo que permite calcular el óptimo global $f^*$ mediante programación dinámica
 % restricciones.
 
 \section{Experimentos}
+\label{sec:experimentos}
 % TODO: instancias, parámetros, entorno de ejecución.
 
 \section{Resultados}
+\label{sec:resultados}
 % TODO: tablas y gráficos comparativos; comparación con investigaciones
 % previas~\cite{Hammouche2010Comparative}.
 
 \section{Conclusiones}
 % TODO
+
+\section{Retroalimentación}
+\label{sec:retro}
+
+\paragraph{Retroalimentación -- Estado de avance.} Se señaló un aspecto: \emph{``Lo que te faltó en la presentación fue mostrar el código en la ppt, lo supiste explicar bien cuando te pregunté, pero no la incluiste''}. \textbf{Respuesta:} la presentación final incluirá fragmentos del código de las partes clave: la evaluación de $f$ con sumas acumuladas, el Greedy, la generación de vecinos, la lista tabú y el criterio de aspiración. Este informe no incluye código, según lo indicado en la plantilla; el código fuente documentado se entrega en la carpeta del código. Además, en el avance se declararon tres tareas pendientes, abordadas como sigue: (i) \emph{extender las pruebas}: se pasó de una ejecución por instancia a 1.440 ejecuciones, con 48 configuraciones de parámetros sobre las 30 instancias (Sección~\ref{sec:experimentos}); (ii) \emph{las 7 instancias con $k = 6$ sin óptimo conocido}: se obtuvo el óptimo exacto de las 30 instancias mediante programación dinámica (Sección~\ref{sec:separable}); y (iii) \emph{la sensibilidad a $T$ y a las iteraciones}: se estudia en la Sección~\ref{sec:resultados}.
+
+\paragraph{Retroalimentación -- Informe 1.} La copia física con las anotaciones de la ayudante se extravió. La ayudante facilitó el puntaje obtenido en cada ítem de la rúbrica, y se tomó como guía cada ítem con puntaje menor a 5. La Tabla~\ref{tab:retro} resume cada uno y el cambio realizado. Además, el autor corrigió el título, que carecía de tildes, y el formato del rol.
+
+\begin{table}[h]
+    \centering
+    \small
+    \begin{tabular}{p{3.2cm} c p{8.3cm}}
+        \hline
+        Ítem de la rúbrica & Puntaje & Cambio en este informe \\
+        \hline
+        Dificultades del problema & 1/5 & Párrafo \emph{Dificultades}: tamaño del espacio, óptimos locales, zonas planas y clases vacías, y calidad estadística frente a clínica. \\
+        Objetivos del problema & 2/5 & Párrafo \emph{Objetivos}, enunciados en palabras y sin fórmulas. \\
+        Modelo propio & 2/5 & Formulación separable (Sección~\ref{sec:separable}), que fundamenta la evaluación en $O(k)$ y el óptimo exacto. \\
+        Origen histórico & 2/5 & Párrafo inicial del Estado del arte, desde Prewitt y Mendelsohn (1966)~\cite{Prewitt1966Cell} y la clasificación de Sezgin y Sankur~\cite{Sezgin2004Survey}. \\
+        Propósito del documento & 3/5 & La Introducción explicita el propósito y la contribución de este informe. \\
+        Naturaleza del problema & 3/5 & Párrafo inicial de la Definición del problema: qué es umbralizar, el histograma y por qué es optimización combinatoria. \\
+        Variables & 4/5 & Párrafo \emph{Parámetros y variables}, en palabras. \\
+        Representaciones & 4/5 & Se agrega la representación entera y por qué es la más adecuada. \\
+        Resumen del problema & 4/5 & El Resumen explica qué se busca: los umbrales que maximizan la varianza entre clases en MRI. \\
+        \hline
+    \end{tabular}
+    \caption{Ítems del Informe 1 con puntaje menor a 5 y cambios realizados.}
+    \label{tab:retro}
+\end{table}
 
 \section{Uso LLMs}
 % TODO: herramienta, propósito, prompts relevantes, nivel de edición y
