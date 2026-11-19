@@ -30,7 +30,7 @@ TEX_AUX = aux log bbl blg out toc nav snm vrb lof lot fls fdb_latexmk synctex.gz
 PREPROCESADO_STAMP := $(DATA_PREPROCESADO)/.generado
 IMAGENES_ORIGINALES := $(wildcard $(DATA_ORIGINAL)/*.jpg $(DATA_ORIGINAL)/*.jpeg)
 
-.PHONY: all programas preprocesado run run-exhaustiva run-compare clean clean-datos distclean help \
+.PHONY: all programas preprocesado run run-exhaustiva run-compare experimentos clean clean-datos distclean help \
 	pdf pdf-estado-del-arte pdf-avance pdf-implementacion pdf-final clean-tex distclean-tex
 .SECONDEXPANSION:
 .SECONDARY: $(PROGRAMAS_OBJ)
@@ -63,6 +63,9 @@ run-exhaustiva: $(BIN_DIR)/exhaustiva preprocesado
 run-compare: $(BIN_DIR)/compare
 	@./$(BIN_DIR)/compare
 
+experimentos: $(BIN_DIR)/main $(BIN_DIR)/exhaustiva $(BIN_DIR)/compare preprocesado
+	@bash scripts/experimentos.sh
+
 # Informes y presentaciones (pdflatex + bibtex), una carpeta por entrega.
 pdf: $(TEX_PDFS)
 pdf-estado-del-arte: $(TEX_DIR)/0-estado-del-arte/main.pdf
@@ -94,6 +97,7 @@ help:
 	@echo "make run            Compila y ejecuta main"
 	@echo "make run-exhaustiva Calcula el optimo exacto (programacion dinamica)"
 	@echo "make run-compare    Compara greedy y tabu contra el optimo exacto"
+	@echo "make experimentos   Grilla de T e iteraciones sobre las 30 instancias (CSV)"
 	@echo "make clean          Elimina lo compilado"
 	@echo "make clean-datos    Elimina las instancias generadas"
 	@echo "make distclean      clean + clean-datos"

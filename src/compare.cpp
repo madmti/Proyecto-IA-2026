@@ -6,6 +6,7 @@
 #include <iostream>
 #include <map>
 #include <optional>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -40,17 +41,27 @@ double leerDouble(const map<string, string> &claves, const string &clave,
 	return stod(it->second);
 }
 
+// Devuelve el valor de una clave o "" si no existe (para columnas opcionales).
+string leerOpcional(const map<string, string> &claves, const string &clave) {
+	const auto it = claves.find(clave);
+	return it == claves.end() ? "" : it->second;
+}
+
 struct Fila {
 	string instancia;
 	int k = 0;
+	string tenencia; // Parametros con que se genero la solucion.
+	string iteraciones;
 	double fInicial = 0.0;
 	double fFinal = 0.0;
+	string msInicial;
+	string msReparacion;
 	optional<double> fOptimo; // Vacio si no hay exhaustiva para la instancia.
 };
 
-vector<Fila> cargarFilas() {
+vector<Fila> cargarFilas(const fs::path &carpetaSoluciones) {
 	vector<fs::path> rutas;
-	for (const auto &e : fs::directory_iterator(CARPETA_SOLUCIONES))
+	for (const auto &e : fs::directory_iterator(carpetaSoluciones))
 		if (e.path().extension() == ".txt")
 			rutas.push_back(e.path());
 	sort(rutas.begin(), rutas.end());
@@ -63,6 +74,10 @@ vector<Fila> cargarFilas() {
 		fila.k = stoi(sol.at("k"));
 		fila.fInicial = leerDouble(sol, "f_inicial", ruta);
 		fila.fFinal = leerDouble(sol, "f_final", ruta);
+		fila.tenencia = leerOpcional(sol, "tenencia");
+		fila.iteraciones = leerOpcional(sol, "iteraciones");
+		fila.msInicial = leerOpcional(sol, "ms_inicial");
+		fila.msReparacion = leerOpcional(sol, "ms_reparacion");
 
 		const fs::path rutaOptimo = fs::path(CARPETA_OPTIMOS) / ruta.filename();
 		if (fs::exists(rutaOptimo))
@@ -89,15 +104,57 @@ void imprimirBrecha(double f, const optional<double> &optimo) {
 	cout << setw(10) << abs_ << setw(9) << rel << "%";
 }
 
-int main() {
+// Brecha relativa (%) respecto al optimo, o "" si no hay optimo.
+string brechaCsv(double f, const optional<double> &optimo) {
+	if (!optimo || *optimo == 0.0)
+		return "";
+	ostringstream salida;
+	salida << fixed << setprecision(6) << 100.0 * (*optimo - f) / *optimo;
+	return salida.str();
+}
+
+// Una fila CSV por instancia, para procesar los experimentos.
+void imprimirCsv(const vector<Fila> &filas) {
+	cout << "instancia,k,tenencia,iteraciones,f_inicial,f_final,f_optimo,"
+			"brecha_inicial,brecha_final,ms_inicial,ms_reparacion\n";
+	cout << fixed << setprecision(10);
+	for (const auto &f : filas) {
+		cout << f.instancia << ',' << f.k << ',' << f.tenencia << ','
+			 << f.iteraciones << ',' << f.fInicial << ',' << f.fFinal << ',';
+		if (f.fOptimo)
+			cout << *f.fOptimo;
+		cout << ',' << brechaCsv(f.fInicial, f.fOptimo) << ','
+			 << brechaCsv(f.fFinal, f.fOptimo) << ',' << f.msInicial << ','
+			 << f.msReparacion << '\n';
+	}
+}
+
+int main(int argc, char **argv) {
+	fs::path carpetaSoluciones = CARPETA_SOLUCIONES;
+	bool csv = false;
+	for (int i = 1; i < argc; i++) {
+		const string opcion = argv[i];
+		if (opcion == "--csv") {
+			csv = true;
+		} else if (opcion == "--soluciones" && i + 1 < argc) {
+			carpetaSoluciones = argv[++i];
+		} else {
+			cerr << "Uso: " << argv[0] << " [--soluciones <carpeta>] [--csv]\n";
+			return 1;
+		}
+	}
+
 	vector<Fila> filas;
 	try {
-		filas = cargarFilas();
+		filas = cargarFilas(carpetaSoluciones);
 	} catch (const exception &e) {
 		cerr << "[e] error leyendo resultados: " << e.what() << "\n";
 		return 1;
 	}
-
+	if (csv) {
+		imprimirCsv(filas);
+		return 0;
+	}
 	cout << fixed << setprecision(4) << left << setw(20) << "instancia" << right
 		 << setw(3) << "k" << setw(12) << "f_inicial" << setw(12) << "f_final"
 		 << setw(12) << "f_optimo" << setw(10) << "abs_ini" << setw(10)
