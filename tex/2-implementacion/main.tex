@@ -84,8 +84,11 @@ Se utilizan 10 im\'agenes diferentes provenientes del conjunto de datos \textit{
 Debido al tamaño del espacio de búsqueda, la enumeración exhaustiva solo es práctica con pocos umbrales. Esto motiva el uso de metaheur\'isticas, las cuales permiten escapar de \'optimos locales y obtener soluciones cercanas al \'optimo en un tiempo razonable, aunque sin garantizar el \'optimo global~\cite{Hammouche2010Comparative, Lameesa2024Role}. Sin embargo, el criterio de Otsu puede escribirse como una suma de términos que dependen solo de los extremos de cada clase, lo que permite calcular el óptimo exacto mediante programación dinámica~\cite{Fisher1958Grouping, Luessi2009Framework} (Sección~\ref{sec:modelo}). En este trabajo, ese óptimo se utiliza como referencia para medir la calidad de las soluciones obtenidas por la metaheurística.
 
 \section{Estado del Arte}
+% B.1c: agregados el origen histórico, los métodos exactos y la representación
+% entera; resumido el detalle de SBX y mutación polinomial.
 
-Las bases del problema surgen con el m\'etodo de Otsu en 1979~\cite{Otsu1979}, el cual maximiza la varianza entre clases, y el m\'etodo de Kapur en 1985~\cite{Kapur1985}, el cual utiliza la entrop\'ia como criterio.
+La umbralizaci\'on es una de las t\'ecnicas m\'as antiguas de segmentaci\'on de im\'agenes. Uno de los primeros trabajos es el de Prewitt y Mendelsohn~\cite{Prewitt1966Cell}, quienes, en el an\'alisis automatizado de im\'agenes de c\'elulas, ubicaron el umbral en el valle entre los dos modos del histograma. Desde entonces se han propuesto decenas de m\'etodos, que Sezgin y Sankur~\cite{Sezgin2004Survey} clasifican seg\'un la informaci\'on que aprovechan: la forma del histograma, el agrupamiento de intensidades, la entrop\'ia, los atributos de los objetos, la correlaci\'on espacial y las caracter\'isticas locales.
+Las bases del problema abordado surgen con el m\'etodo de Otsu en 1979~\cite{Otsu1979}, el cual maximiza la varianza entre clases, y el m\'etodo de Kapur en 1985~\cite{Kapur1985}, el cual utiliza la entrop\'ia como criterio.
 Inicialmente, ambos m\'etodos resuelven el problema para un \'unico umbral, y, aunque son extensibles al caso multiumbral, resultan ineficientes dado que, al realizar b\'usqueda exhaustiva,
 est\'an sujetos a la explosi\'on combinatoria que surge al aumentar el n\'umero de umbrales, la cual es del orden de $O(L^{k})$, donde $k$ es el n\'umero de umbrales.~\cite{Manikandan2014Multilevel, Hammouche2010Comparative}.
 %%
@@ -95,7 +98,8 @@ Estos algoritmos incompletos empezaron a ser aplicados para optimizar los criter
 siendo GA una de las m\'as utilizadas seguida de PSO, SA y ACO~\cite{Hammouche2010Comparative}.
 
 Como se ha mencionado anteriormente, utilizar b\'usqueda exhaustiva en este problema es muy costoso. Se han utilizado diversos m\'etodos para reducir el costo computacional,
-tales como tablas precalculadas que evitan c\'alculos repetitivos~\cite{Hammouche2010Comparative, Manikandan2014Multilevel}.
+tales como tablas precalculadas que evitan c\'alculos repetitivos~\cite{Liao2001Fast, Hammouche2010Comparative, Manikandan2014Multilevel}.
+Adem\'as, cuando el criterio se descompone en una suma de t\'erminos por clase, como ocurre con el de Otsu, el \'optimo exacto puede obtenerse mediante programaci\'on din\'amica en tiempo polinomial~\cite{Fisher1958Grouping, Luessi2009Framework}, aunque este enfoque depende de dicha estructura de la funci\'on objetivo.
 Por su parte, los enfoques param\'etricos, que asumen una distribuci\'on de probabilidad para cada clase, derivan en un problema no lineal que tambi\'en resulta muy costoso~\cite{Hammouche2010Comparative}.
 Por otro lado, se exploraron m\'etodos de dicotomizaci\'on secuencial que dividen el histograma iterativamente, los cuales resultan ser muy r\'apidos pero con soluciones sub\'optimas.
 Los m\'etodos puramente iterativos mostraron ser sensibles a los valores iniciales, con una tendencia a quedar atrapados en \'optimos locales~\cite{Hammouche2010Comparative}.
@@ -117,9 +121,8 @@ DE genera soluciones mutantes sumando a una soluci\'on la diferencia escalada en
 SA acepta vecinos de peor calidad con una probabilidad que disminuye junto con la temperatura; y TS desplaza cada umbral dentro de un rango acotado, evitando revisitar soluciones recientes mediante una lista tab\'u~\cite{Hammouche2010Comparative}.
 En la literatura existen representaciones de cadenas de bits implementadas en GA~\cite{Hammouche2010Comparative}; sin embargo, la representaci\'on de punto flotante o real resulta m\'as adecuada y natural al problema~\cite{Manikandan2014Multilevel}.
 Esto puede explicarse porque, en una representaci\'on binaria, un cambio en 1 bit puede desatar un salto muy grande que puede alejar al algoritmo de soluciones de calidad, no permitiendo que este pueda afinar sus soluciones.
-En una representaci\'on real, en cambio, las modificaciones son graduales y sinergian muy bien con movimientos como Simulated Binary Crossover (SBX) o Polynomial Mutation.
-La heur\'istica SBX controla el nivel de dispersi\'on de sus soluciones dependiendo de qu\'e tan dispersas est\'an las soluciones padre; esto favorece la exploraci\'on tanto como la explotaci\'on.
-La heur\'istica Polynomial Mutation, o Mutaci\'on polinomial, modifica los umbrales a trav\'es de una distribuci\'on de probabilidad que favorece ajustes finos en zonas prometedoras, otorgando as\'i alta capacidad adaptativa~\cite{Manikandan2014Multilevel}.
+En una representaci\'on real, en cambio, las modificaciones son graduales y se combinan bien con operadores adaptativos como Simulated Binary Crossover (SBX) y la mutaci\'on polinomial, que favorecen ajustes finos en zonas prometedoras~\cite{Manikandan2014Multilevel}.
+Una tercera alternativa, adoptada en este trabajo, es representar cada umbral directamente como un nivel de gris entero. Como los niveles de gris son discretos, esta representaci\'on coincide exactamente con el espacio de soluciones: no requiere redondear, como la real, y permite movimientos de una unidad, el cambio m\'as peque\~no posible, evitando los saltos de la binaria.
 
 El estado del arte actual tiende a alejarse de utilizar metaheur\'isticas de manera tradicional, enfoc\'andose en algoritmos h\'ibridos o mejores equilibrios entre exploraci\'on y explotaci\'on~\cite{Lameesa2024Role}.
 Algunos ejemplos recientes incluyen combinar Reptile Search Algorithm (RSA) con Salp Swarm Algorithm (SSA) para evitar estancarse en regiones locales,
