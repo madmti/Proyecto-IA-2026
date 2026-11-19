@@ -95,6 +95,8 @@ Guarda en `data/resultados/experimentos/`:
 | `trazas/T<T>/<instancia>.csv` | Convergencia de Tabú: `iteracion,f_actual,f_mejor`. |
 | `trazas/soluciones/T<T>/` | Las soluciones de las corridas con traza (sus tiempos no se usan). |
 
+Además copia a `tex/2-implementacion/datos/` los CSV que usan los gráficos y tablas del informe: `resumen.csv`, `base.csv` (las 30 instancias con la configuración base, `T = 10` y 1000 iteraciones) y las trazas de `imagen_10_k6` con `T = 10` y `T = 20`. Esa carpeta se versiona junto al informe.
+
 Para cambiar la grilla se editan `TENENCIAS` e `ITERACIONES` al inicio del script.
 
 ### Figuras
@@ -161,7 +163,7 @@ Cada entrega del ramo tiene su carpeta en `tex/` con `main.tex` y `Referencias.b
 Las tablas, gráficos y figuras del informe salen de:
 
 ```bash
-make experimentos       # CSV del análisis de sensibilidad y trazas de convergencia
+make experimentos       # CSV del análisis de sensibilidad, copiados a tex/2-implementacion/datos/
 make figuras            # imágenes segmentadas en tex/2-implementacion/figuras/
 make pdf-implementacion # compila tex/2-implementacion/main.pdf
 ```
@@ -172,7 +174,7 @@ make pdf-implementacion # compila tex/2-implementacion/main.pdf
 
 | Carpeta | Contenido |
 | --- | --- |
-| `informe/` | El contenido de `tex/2-implementacion/`: fuentes `.tex` y `.bib`, figuras y PDF compilado. |
+| `informe/` | El contenido de `tex/2-implementacion/`: fuentes `.tex` y `.bib`, figuras, datos de los gráficos (`datos/`) y PDF compilado. |
 | `codigo/` | `Makefile`, este README, `src/`, `scripts/` y las imágenes de `data/original/`. |
 
-En la carpeta `codigo/` no viene `tex/`, porque el informe va aparte. Ahí funcionan `make`, `make run`, `make run-exhaustiva`, `make run-compare`, `make experimentos` y `make clean`. `make figuras` crea `tex/2-implementacion/figuras/` desde cero. Los objetivos `pdf-*` y `entrega` solo funcionan en el repositorio completo.
+En la carpeta `codigo/` no viene `tex/`, porque el informe va aparte. Ahí funcionan `make`, `make run`, `make run-exhaustiva`, `make run-compare`, `make experimentos` y `make clean`. `make experimentos` y `make figuras` crean `tex/2-implementacion/datos/` y `figuras/` desde cero. Los objetivos `pdf-*` y `entrega` solo funcionan en el repositorio completo.

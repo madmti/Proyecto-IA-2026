@@ -22,6 +22,12 @@
 #   trazas/T<T>/<instancia>.csv      iteracion,f_actual,f_mejor
 #   trazas/soluciones/T<T>/          soluciones de esas corridas (sus tiempos
 #                                    no se usan)
+#
+# Y copia a tex/2-implementacion/datos/ los CSV que lee el informe (pgfplots):
+#   resumen.csv                      el de tuning/
+#   base.csv                         filas de sensibilidad.csv con la
+#                                    configuracion base (T_BASE, IT_BASE)
+#   traza_imagen_10_k6_T<T>.csv      convergencia de imagen_10_k6 con T = 10 y 20
 set -euo pipefail
 
 BIN=build/bin
@@ -29,6 +35,9 @@ SALIDA=data/resultados/experimentos
 TENENCIAS=(0 2 5 10 15 20 30 40)
 ITERACIONES=(50 100 200 500 1000 2000)
 TOLERANCIA=1e-9 # Brecha (%) bajo la cual se considera alcanzado el optimo.
+T_BASE=10
+IT_BASE=1000
+INFORME=tex/2-implementacion/datos
 
 rm -rf "$SALIDA"
 mkdir -p "$SALIDA/tuning" "$SALIDA/trazas"
@@ -91,4 +100,15 @@ for T in "${TENENCIAS[@]}"; do
 		--traza "$SALIDA/trazas/T${T}" >/dev/null
 done
 
+# 4. Datos para el informe.
+rm -rf "$INFORME"
+mkdir -p "$INFORME"
+cp "$SALIDA/tuning/resumen.csv" "$INFORME/"
+awk -F, -v t="$T_BASE" -v it="$IT_BASE" 'NR == 1 || ($3 == t && $4 == it)' \
+	"$CSV" >"$INFORME/base.csv"
+for T in 10 20; do
+	cp "$SALIDA/trazas/T${T}/imagen_10_k6.csv" "$INFORME/traza_imagen_10_k6_T${T}.csv"
+done
+
 echo "[i] Resultados en $SALIDA (entorno.txt, tuning/, trazas/)"
+echo "[i] Datos del informe en $INFORME"
