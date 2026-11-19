@@ -40,6 +40,8 @@ std::vector<Instancia> cargarInstancias(const std::filesystem::path &carpeta);
 // Resultado de resolver una instancia.
 struct Resultado {
 	unsigned int semilla = 0;
+	int tenencia = 0;	 // T de Tabu Search (la lista guarda k + T pares).
+	int iteraciones = 0; // Iteraciones de Tabu Search.
 	std::vector<int> inicial;
 	double fInicial = 0.0;
 	std::vector<int> final;

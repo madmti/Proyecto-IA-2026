@@ -47,6 +47,31 @@ La semilla que elige las 10 imágenes se puede cambiar con `make SEMILLA=7`. Por
 
 La búsqueda exhaustiva omite `k = 6`, porque su espacio de búsqueda tiene unos 3,5 · 10¹¹ elementos. Con `k = 4` tarda algunos segundos por instancia.
 
+### Parámetros del algoritmo
+
+`make run` usa la configuración base. Para cambiarla se ejecuta `main` directamente:
+
+```bash
+./build/bin/main [opciones]
+```
+
+| Opción | Descripción | Defecto |
+| --- | --- | --- |
+| `--T <n>` | Tenencia: la lista tabú guarda `k + T` pares (umbral, valor). Entero ≥ 0. | `10` |
+| `--iter <n>` | Iteraciones de Tabú Search. Entero ≥ 1. | `1000` |
+| `--semilla <n>` | Semilla de los generadores aleatorios. | `42` |
+| `--instancia <ruta>` | Resuelve solo esa instancia. | todas las de `data/preprocesado/instancias` |
+| `--salida <carpeta>` | Carpeta donde se guardan las soluciones. | `data/resultados/soluciones` |
+| `--help` | Muestra la ayuda. | |
+
+Por ejemplo, para resolver una instancia con una lista tabú más corta y menos iteraciones, sin sobrescribir las soluciones base:
+
+```bash
+./build/bin/main --instancia data/preprocesado/instancias/imagen_10_k6.txt --T 0 --iter 100 --salida data/resultados/pruebas
+```
+
+`run-compare` siempre lee `data/resultados/soluciones`.
+
 ## Estructura
 
 | Ruta | Contenido |
@@ -69,7 +94,7 @@ La búsqueda exhaustiva omite `k = 6`, porque su espacio de búsqueda tiene unos
 
 Una **instancia** (`data/preprocesado/instancias/imagen_XX_kK.txt`) tiene la cabecera `SEGMENTACION_MULTIUMBRAL_V1`, seguida de la imagen de origen, el ancho, el alto, `L`, `k`, `N` (número de píxeles) y las 256 frecuencias del histograma.
 
-Una **solución** (`data/resultados/soluciones/`) tiene la cabecera `SOLUCION_MULTIUMBRAL_V1` y contiene la semilla, los umbrales y el valor de `f` de la solución inicial (Greedy) y de la final (Tabú), además del tiempo de cada etapa en ms.
+Una **solución** (`data/resultados/soluciones/`) tiene la cabecera `SOLUCION_MULTIUMBRAL_V1` y contiene los parámetros usados (semilla, tenencia e iteraciones), los umbrales y el valor de `f` de la solución inicial (Greedy) y de la final (Tabú), además del tiempo de cada etapa en ms.
 
 Un **óptimo** (`data/resultados/optimos/`) tiene la cabecera `OPTIMO_MULTIUMBRAL_V1` y contiene `f_optimo`, la cantidad de soluciones óptimas empatadas, sus umbrales y el tiempo en segundos.
 

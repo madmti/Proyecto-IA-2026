@@ -7,6 +7,14 @@
 
 namespace algo {
 
+// Parametros configurables del algoritmo. Los valores por defecto son los
+// usados en la configuracion base (main sin argumentos).
+struct Parametros {
+	int tenencia = 10;		   // T: la lista tabu guarda k + T pares.
+	int iteraciones = 1000;	   // Iteraciones de Tabu Search.
+	unsigned int semilla = 42; // Semilla de los generadores aleatorios.
+};
+
 // Genera una solucion inicial factible:
 // k umbrales enteros en [1, 254], estrictamente crecientes.
 // Recibe la tabla para poder usar f(t) si el metodo es greedy.
@@ -20,7 +28,7 @@ std::vector<int> generarSolucionInicial(const io::Instancia &instancia,
 // 1 <= t1 < t2 < ... < tk <= 254.
 std::vector<int> repararSolucion(const std::vector<int> &inicial,
 								 const otsu::TablaOtsu &tabla,
-								 unsigned int semilla);
+								 const Parametros &parametros);
 
 // Busqueda exhaustiva: evalua todas las combinaciones factibles
 // 1 <= t1 < ... < tk <= 254 y devuelve todas las de mayor f(t) (empates con

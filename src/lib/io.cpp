@@ -199,6 +199,8 @@ filesystem::path guardarResultado(const Instancia &instancia,
 			   << "imagen " << instancia.imagen << "\n"
 			   << "k " << instancia.k << "\n"
 			   << "semilla " << resultado.semilla << "\n"
+			   << "tenencia " << resultado.tenencia << "\n"
+			   << "iteraciones " << resultado.iteraciones << "\n"
 			   << setprecision(10) << "f_inicial " << resultado.fInicial << "\n"
 			   << "umbrales_inicial " << listarUmbrales(resultado.inicial)
 			   << "\n"

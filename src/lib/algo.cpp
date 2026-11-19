@@ -58,8 +58,6 @@ std::vector<int> generarSolucionInicial(const io::Instancia &instancia,
 					Algoritmo Reparador
 =================================================================*/
 
-constexpr unsigned long long MAX_ITER = 1000;
-
 double funObjMod(std::vector<int> umbrales, std::tuple<int, int> vecino,
 				 const otsu::TablaOtsu &tabla) {
 	auto [idx, val] = vecino;
@@ -91,9 +89,9 @@ std::vector<std::tuple<int, int>> generarVecinos(std::vector<int> &actual,
 
 std::vector<int> tabusearch(const std::vector<int> &inicial,
 							const otsu::TablaOtsu &tabla,
-							unsigned int semilla) {
+							const Parametros &parametros) {
 	// T arbitrario, probando nomas me sirvio T = 10 que fue mejor que 2 * size - 1
-	int size = static_cast<int>(inicial.size()), T = 10;
+	int size = static_cast<int>(inicial.size()), T = parametros.tenencia;
 	std::vector<int> actual = inicial, mejor = inicial;
 	double fmax = otsu::funObj(inicial, tabla);
 
@@ -101,7 +99,7 @@ std::vector<int> tabusearch(const std::vector<int> &inicial,
 	for (int i = 0; i < size; i++)
 		tabu.push_back(std::make_tuple(i, inicial[i]));
 
-	for (unsigned long long i = 0; i < MAX_ITER; i++) {
+	for (int i = 0; i < parametros.iteraciones; i++) {
 		if (T > 0)
 			T -= 1;
 		else
@@ -127,7 +125,8 @@ std::vector<int> tabusearch(const std::vector<int> &inicial,
 			}
 		}
 
-		// Caso borde donde no hay ningun vecino candidato, elegimos nomas el mejor de los tabus
+		// Caso borde donde no hay ningun vecino candidato, elegimos nomas el
+		// mejor de los tabus
 		if (fcandidato < 0) {
 			fcandidato = flocal;
 			candidato = local;
@@ -148,8 +147,8 @@ std::vector<int> tabusearch(const std::vector<int> &inicial,
 
 std::vector<int> repararSolucion(const std::vector<int> &inicial,
 								 const otsu::TablaOtsu &tabla,
-								 unsigned int semilla) {
-	return tabusearch(inicial, tabla, semilla);
+								 const Parametros &parametros) {
+	return tabusearch(inicial, tabla, parametros);
 }
 
 /*=================================================================
