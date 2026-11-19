@@ -39,6 +39,7 @@ make run-exhaustiva   # calcula el óptimo exacto de las 30 instancias (programa
 make run-compare      # compara los resultados con el óptimo exacto
 make experimentos     # análisis de sensibilidad de T e iteraciones (CSV)
 make figuras          # imágenes segmentadas para el informe
+make entrega          # pipeline completo y zip de la entrega (ver abajo)
 make clean            # elimina lo compilado
 make help             # lista todos los comandos
 ```
@@ -154,3 +155,24 @@ Cada entrega del ramo tiene su carpeta en `tex/` con `main.tex` y `Referencias.b
 | `tex/3-final/` | Presentación final | `make pdf-final` |
 
 `make pdf` compila todas las entregas. `make clean-tex` borra los auxiliares de LaTeX y `make distclean-tex` borra además los PDF.
+
+### Reproducir el informe 2
+
+Las tablas, gráficos y figuras del informe salen de:
+
+```bash
+make experimentos       # CSV del análisis de sensibilidad y trazas de convergencia
+make figuras            # imágenes segmentadas en tex/2-implementacion/figuras/
+make pdf-implementacion # compila tex/2-implementacion/main.pdf
+```
+
+## Entrega
+
+`make entrega` corre el pipeline completo (instancias, experimentos, figuras y compilación del informe 2), borra los auxiliares de LaTeX y genera `PeñalozaM202373037.zip` con dos carpetas:
+
+| Carpeta | Contenido |
+| --- | --- |
+| `informe/` | El contenido de `tex/2-implementacion/`: fuentes `.tex` y `.bib`, figuras y PDF compilado. |
+| `codigo/` | `Makefile`, este README, `src/`, `scripts/` y las imágenes de `data/original/`. |
+
+En la carpeta `codigo/` no viene `tex/`, porque el informe va aparte. Ahí funcionan `make`, `make run`, `make run-exhaustiva`, `make run-compare`, `make experimentos` y `make clean`. `make figuras` crea `tex/2-implementacion/figuras/` desde cero. Los objetivos `pdf-*` y `entrega` solo funcionan en el repositorio completo.
