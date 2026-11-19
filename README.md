@@ -37,6 +37,7 @@ make                  # compila y genera las 30 instancias (10 imágenes × k = 
 make run              # ejecuta Greedy + Tabú Search sobre todas las instancias
 make run-exhaustiva   # calcula el óptimo exacto de las 30 instancias (programación dinámica)
 make run-compare      # compara los resultados con el óptimo exacto
+make experimentos     # análisis de sensibilidad de T e iteraciones (CSV)
 make clean            # elimina lo compilado
 make help             # lista todos los comandos
 ```
@@ -70,7 +71,20 @@ Por ejemplo, para resolver una instancia con una lista tabú más corta y menos 
 ./build/bin/main --instancia data/preprocesado/instancias/imagen_10_k6.txt --T 0 --iter 100 --salida data/resultados/pruebas
 ```
 
-`run-compare` siempre lee `data/resultados/soluciones`.
+`run-compare` lee `data/resultados/soluciones` por defecto. Para comparar otra carpeta se usa `./build/bin/compare --soluciones <carpeta>`. Con `--csv`, la tabla sale en formato CSV, con los parámetros, las brechas (%) y los tiempos.
+
+### Experimentos
+
+`make experimentos` ejecuta `scripts/experimentos.sh`. El script calcula los óptimos exactos y resuelve las 30 instancias con cada combinación de `T ∈ {0, 2, 5, 10, 15, 20, 30, 40}` e `iteraciones ∈ {50, 100, 200, 500, 1000, 2000}` (tarda unos segundos). Guarda en `data/resultados/experimentos/`:
+
+| Archivo | Contenido |
+| --- | --- |
+| `sensibilidad.csv` | Una fila por configuración e instancia: `f` inicial, final y óptimo, brechas y tiempos. |
+| `resumen.csv` | Una fila por `(T, iteraciones, k)`: óptimos alcanzados, brecha media y máxima, y tiempo medio de Tabú. |
+| `entorno.txt` | CPU, memoria, sistema operativo y compilador usados. |
+| `soluciones/T<T>_it<iter>/` | Las soluciones de cada configuración. |
+
+Para cambiar la grilla se editan `TENENCIAS` e `ITERACIONES` al inicio del script.
 
 ## Estructura
 
@@ -78,7 +92,7 @@ Por ejemplo, para resolver una instancia con una lista tabú más corta y menos 
 | --- | --- |
 | `src/main.cpp` | Resuelve cada instancia (Greedy + Tabú Search) y guarda las soluciones. |
 | `src/exhaustiva.cpp` | Calcula el óptimo global exacto de cada instancia (programación dinámica). |
-| `src/compare.cpp` | Tabla comparativa entre las soluciones y el óptimo. |
+| `src/compare.cpp` | Tabla comparativa (o CSV) entre las soluciones y el óptimo. |
 | `src/preprocesar.cpp` | Selecciona las imágenes, las lleva a 256 × 256 en gris y genera las instancias (histograma + `k`). |
 | `src/segmentar.cpp` | Aplica umbrales dados por consola a una imagen y guarda la segmentación. |
 | `src/lib/algo.*` | Greedy, Tabú Search y óptimo exacto (programación dinámica y backtracking). |
@@ -87,7 +101,8 @@ Por ejemplo, para resolver una instancia con una lista tabú más corta y menos 
 | `src/lib/img.*` | Manejo de imágenes e histogramas. |
 | `data/original/` | Imágenes MRI originales (versionadas). |
 | `data/preprocesado/` | Imágenes de 256 × 256 e instancias generadas (no versionadas). |
-| `data/resultados/` | Soluciones (`soluciones/`) y óptimos exactos (`optimos/`) generados (no versionados). |
+| `data/resultados/` | Soluciones (`soluciones/`), óptimos exactos (`optimos/`) y experimentos (`experimentos/`) generados (no versionados). |
+| `scripts/experimentos.sh` | Grilla de parámetros para el análisis de sensibilidad. |
 | `tex/` | Informes y presentaciones del ramo (ver abajo). |
 
 ## Formatos
