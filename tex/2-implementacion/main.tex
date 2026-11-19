@@ -5,14 +5,22 @@
 \documentclass[letter, 10pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[spanish]{babel}
+\usepackage[spanish,es-tabla]{babel}
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{url}
+\usepackage{array}
 \usepackage{tikz}
-\usetikzlibrary{decorations.pathreplacing, babel}
+\usetikzlibrary{decorations.pathreplacing, positioning, babel}
 \usepackage[top=3cm,bottom=3cm,left=3.5cm,right=3.5cm,footskip=1.5cm,headheight=1.5cm,headsep=.5cm]{geometry}
+
+
+% Pseudocódigo con tabbing (no hay algorithm2e ni algpseudocode instalados).
+\newcounter{lineapc}
+\newcommand{\pcinicio}{\setcounter{lineapc}{0}}
+\newcommand{\nl}{\stepcounter{lineapc}\llap{\scriptsize\arabic{lineapc}\hspace{0.8em}}}
+\newcommand{\kw}[1]{\textbf{#1}}
 
 \begin{document}
 \title{Inteligencia Artificial \\ \begin{Large}Implementación: Problema ``Segmentación de imágenes médicas mediante metaheurísticas''\end{Large}}
@@ -260,9 +268,80 @@ Se eligió esta representación por tres razones. Primero, es exacta: como los n
 En la implementación, la solución es un arreglo de $k$ enteros cuya posición $i$ guarda $t_i$, y el histograma se resume en dos arreglos de 256 reales con las sumas acumuladas $P$ y $S$, que se calculan una vez por instancia. Con ellos, evaluar una solución cuesta $O(k)$, sin importar el tamaño de la imagen.
 
 \section{Descripción del algoritmo}
-% TODO: función de evaluación con tablas precalculadas~\cite{Liao2001Fast},
-% solución inicial (Greedy), Tabú Search, movimientos, manejo de
-% restricciones.
+\label{sec:algoritmo}
+El método combina una heurística constructiva Greedy, que genera la solución inicial, con Tabu Search (TS), que la mejora mediante búsqueda local. La Figura~\ref{fig:flujo} muestra la estructura general, que se aplica de forma independiente a cada instancia.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[caja/.style={draw, rounded corners, align=center, font=\small, minimum height=1cm, text width=2.3cm}, node distance=0.45cm]
+        \node[caja] (a) {Histograma\\y $k$};
+        \node[caja, right=of a] (b) {Sumas\\acumuladas $P$, $S$};
+        \node[caja, right=of b] (c) {Greedy:\\solución inicial};
+        \node[caja, right=of c] (d) {Tabu Search\\($T$, iteraciones)};
+        \node[caja, right=of d, text width=1.7cm] (e) {Mejor\\solución};
+        \foreach \x/\y in {a/b, b/c, c/d, d/e} \draw[->, thick] (\x) -- (\y);
+    \end{tikzpicture}
+    \caption{Estructura general del método para una instancia.}
+    \label{fig:flujo}
+\end{figure}
+
+\subsection{Función de evaluación}
+Las soluciones se evalúan con la formulación separable~\eqref{eq:separable}. Al leer una instancia se calculan una sola vez las sumas acumuladas $P$ y $S$ del histograma, en $O(L)$; luego cada término $\varphi(t_j, t_{j+1})$ se obtiene con dos restas y una división, y $f(\mathbf{t})$ en $O(k)$~\cite{Liao2001Fast}. Una clase sin píxeles aporta 0, según la convención del modelo. La función no tiene parámetros y es la misma que usan el Greedy, TS y la programación dinámica, por lo que los valores obtenidos por los tres son directamente comparables.
+
+\subsection{Solución inicial: Greedy}
+El Greedy construye los umbrales de izquierda a derecha (Figura~\ref{fig:pseudocodigo}, arriba). Para elegir el umbral $t_i$, prueba cada candidato $u$ entre $t_{i-1} + 1$ y $254 - k + i$; esta cota superior deja espacio para los $k - i$ umbrales restantes, por lo que la solución es factible por construcción. Cada candidato se puntúa con el aporte de la clase que cierra, $\varphi(t_{i-1}, u)$, más el de todos los niveles restantes tratados como una sola clase, $\varphi(u, 256)$. Se elige el candidato de mayor puntaje y los empates se resuelven al azar con una semilla. El costo total es $O(kL)$.
+
+El puntaje se definió tras dos intentos fallidos. Puntuar solo la clase que se cierra ignora el efecto sobre el resto del histograma y empuja los umbrales hacia la cola vacía de intensidades altas: las soluciones con $k = 2$, 4 y 6 tenían casi el mismo valor de $f$. Repartir de manera uniforme los niveles restantes casi no mejoró. Ambos intentos quedaban a más de un 10\,\% del óptimo, mientras que el puntaje final deja al Greedy entre un 0,2\,\% y un 4,6\,\% del óptimo.
+
+\begin{figure}[t]
+    \centering
+    \fbox{\begin{minipage}{0.92\textwidth}
+    \small
+    \textbf{Greedy}$(P, S, k, \text{semilla})$\\[-2mm]
+    \pcinicio
+    \begin{tabbing}
+        \hspace{1.5em}\=\hspace{1.5em}\=\hspace{1.5em}\=\kill
+        \nl $t_0 \leftarrow 0$\\
+        \nl \kw{para} $i = 1, \dots, k$ \kw{hacer}\\
+        \nl \> \kw{para cada} $u \in \{t_{i-1}+1, \dots, 254-k+i\}$: $\;a(u) \leftarrow \varphi(t_{i-1}, u) + \varphi(u, 256)$\\
+        \nl \> $t_i \leftarrow \arg\max_u a(u)$ \hfill (empates al azar, según la semilla)\\
+        \nl \kw{retornar} $(t_1, \dots, t_k)$
+    \end{tabbing}
+    \vspace{-3mm}\hrule\vspace{2mm}
+    \textbf{TabuSearch}$(\mathbf{t}^0, T, \text{iteraciones})$\\[-2mm]
+    \pcinicio
+    \begin{tabbing}
+        \hspace{1.5em}\=\hspace{1.5em}\=\hspace{1.5em}\=\kill
+        \nl $\mathbf{t} \leftarrow \mathbf{t}^0$; $\;\mathbf{t}^* \leftarrow \mathbf{t}^0$; $\;\mathcal{L} \leftarrow$ cola con los pares $(i, t^0_i)$, $i = 1, \dots, k$\\
+        \nl \kw{repetir} iteraciones \kw{veces}\\
+        \nl \> \kw{si} $|\mathcal{L}| = k + T$ \kw{entonces} quitar el par más antiguo de $\mathcal{L}$\\
+        \nl \> $V \leftarrow \{(i, t_i \pm 1)\}$ sin los que salen de $[1, 254]$ o repiten un umbral \hfill (vecinos factibles)\\
+        \nl \> $A \leftarrow \{(i, v) \in V : (i, v) \notin \mathcal{L} \;\lor\; f(\mathbf{t}[t_i \leftarrow v]) > f(\mathbf{t}^*)\}$ \hfill (no tabú o aspiración)\\
+        \nl \> \kw{si} $A = \emptyset$ \kw{entonces} $A \leftarrow V$\\
+        \nl \> $(i, v) \leftarrow \arg\max_{(i, v) \in A} f(\mathbf{t}[t_i \leftarrow v])$ \hfill (aunque empeore)\\
+        \nl \> $t_i \leftarrow v$; $\;$agregar $(i, v)$ al final de $\mathcal{L}$\\
+        \nl \> \kw{si} $f(\mathbf{t}) > f(\mathbf{t}^*)$ \kw{entonces} $\mathbf{t}^* \leftarrow \mathbf{t}$\\
+        \nl \kw{retornar} $\mathbf{t}^*$
+    \end{tabbing}
+    \vspace{-3mm}
+    \end{minipage}}
+    \caption{Pseudocódigo del Greedy (arriba) y de Tabu Search (abajo). $\mathbf{t}[t_i \leftarrow v]$ denota la solución $\mathbf{t}$ con el umbral $i$ reemplazado por $v$.}
+    \label{fig:pseudocodigo}
+\end{figure}
+
+\subsection{Mejora: Tabu Search}
+TS parte de la solución del Greedy y la modifica durante un número fijo de iteraciones (Figura~\ref{fig:pseudocodigo}, abajo).
+
+\paragraph{Movimiento y vecindario.} Un movimiento suma o resta 1 a un umbral, por lo que cada solución tiene a lo más $2k$ vecinos. Se eligió este movimiento porque es el cambio más pequeño posible en la representación entera, modifica solo las dos clases adyacentes al umbral y, como se explicó en la Sección~\ref{sec:representacion}, basta descartar los vecinos que salen de $[1, 254]$ o que repiten un umbral para mantener la factibilidad. Como el vecindario es pequeño, se evalúa completo en cada iteración, con un costo de $O(k)$ por vecino.
+
+\paragraph{Lista tabú.} La lista $\mathcal{L}$ es una cola de pares $(i, v)$, que indican que el umbral $i$ tomó el valor $v$ recientemente; un vecino es tabú si su par está en la lista, lo que impide devolver un umbral a un valor visitado hace poco. La lista parte con los $k$ pares de la solución inicial y guarda a lo más $k + T$ pares: cuando está llena, se quita el más antiguo. El tamaño crece con $k$ porque cada umbral necesita su propia memoria; el parámetro $T$, llamado tenencia, agrega memoria adicional.
+
+\paragraph{Selección y aspiración.} En cada iteración se elige el mejor vecino admisible, aunque empeore la solución actual, lo que permite salir de los óptimos locales. Un vecino tabú es admisible solo si supera el mejor valor encontrado hasta el momento (criterio de aspiración). Si ningún vecino es admisible, se elige el mejor vecino, aunque sea tabú.
+
+\paragraph{Término.} La búsqueda se detiene tras un número fijo de iteraciones y devuelve la mejor solución observada $\mathbf{t}^*$, no la última. Cada iteración cuesta $O(k(k + T))$, por la evaluación de los vecinos y la consulta de la lista tabú.
+
+\subsection{Intensificación y diversificación}
+El Greedy y la selección del mejor vecino intensifican la búsqueda: la primera ubica la búsqueda cerca de una región prometedora y la segunda la conduce rápidamente al óptimo local más cercano. La lista tabú diversifica: al prohibir los valores recientes, obliga a TS a aceptar movimientos que empeoran y a alejarse del óptimo local. La tenencia $T$ regula este equilibrio: con una lista corta, la búsqueda puede volver a las mismas soluciones y quedar en un ciclo, mientras que una lista más larga prohíbe más movimientos y la obliga a explorar otras zonas. Este efecto se estudia en la Sección~\ref{sec:resultados}.
 
 \section{Experimentos}
 \label{sec:experimentos}
@@ -286,7 +365,7 @@ En la implementación, la solución es un arreglo de $k$ enteros cuya posición 
 \begin{table}[h]
     \centering
     \small
-    \begin{tabular}{p{3.2cm} c p{8.3cm}}
+    \begin{tabular}{>{\raggedright\arraybackslash}p{3.2cm} c >{\raggedright\arraybackslash}p{8.6cm}}
         \hline
         Ítem de la rúbrica & Puntaje & Cambio en este informe \\
         \hline
