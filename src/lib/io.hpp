@@ -50,6 +50,13 @@ struct Resultado {
 	double msReparacion = 0.0; // Milisegundos de repararla.
 };
 
+// Estado de Tabu Search en una iteracion; solo se usa para analizar la
+// convergencia, no interviene en la busqueda.
+struct PuntoTraza {
+	double fActual = 0.0; // f de la solucion actual (puede empeorar).
+	double fMejor = 0.0;  // Mejor f encontrado hasta esa iteracion.
+};
+
 // Imprime por consola el resultado de una instancia (umbrales, f y tiempo).
 void imprimirResultado(const Instancia &instancia, const Resultado &resultado);
 
@@ -73,5 +80,10 @@ std::filesystem::path guardarResultado(const Instancia &instancia,
 std::filesystem::path guardarOptimo(const Instancia &instancia,
 									const Optimo &optimo,
 									const std::filesystem::path &carpeta);
+// Guarda <carpeta>/<instancia>.csv con columnas iteracion,f_actual,f_mejor.
+// La fila 0 es la solucion que recibe Tabu Search.
+std::filesystem::path guardarTraza(const Instancia &instancia,
+								   const std::vector<PuntoTraza> &traza,
+								   const std::filesystem::path &carpeta);
 
 } // namespace io

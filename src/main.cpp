@@ -20,6 +20,7 @@ struct Opciones {
 	algo::Parametros parametros;
 	string instancia; // Vacio: se resuelven todas las de CARPETA_INSTANCIAS.
 	string salida = CARPETA_SOLUCIONES;
+	string traza; // Vacio: no se registra la convergencia de Tabu Search.
 	bool ayuda = false;
 };
 
@@ -40,6 +41,8 @@ void imprimirAyuda(const char *programa) {
 		<< CARPETA_INSTANCIAS << ")\n"
 		<< "  --salida <carpeta>   Carpeta de las soluciones (defecto "
 		<< CARPETA_SOLUCIONES << ")\n"
+		<< "  --traza <carpeta>    Guarda la convergencia de Tabu Search por "
+		   "instancia (CSV)\n"
 		<< "  --help               Muestra esta ayuda\n";
 }
 
@@ -85,6 +88,8 @@ Opciones leerOpciones(int argc, char **argv) {
 			opciones.instancia = valor;
 		else if (opcion == "--salida")
 			opciones.salida = valor;
+		else if (opcion == "--traza")
+			opciones.traza = valor;
 		else
 			throw invalid_argument("opcion desconocida: " + opcion);
 	}
@@ -118,8 +123,10 @@ static double msDesde(chrono::steady_clock::time_point inicio) {
 }
 
 // Resuelve una instancia especifica
+// Si traza no es nullptr, registra la convergencia de Tabu Search.
 io::Resultado resolver(const io::Instancia &instancia,
-					   const algo::Parametros &parametros) {
+					   const algo::Parametros &parametros,
+					   vector<io::PuntoTraza> *traza) {
 	io::Resultado resultado;
 	resultado.semilla = parametros.semilla;
 	resultado.tenencia = parametros.tenencia;
@@ -138,7 +145,7 @@ io::Resultado resolver(const io::Instancia &instancia,
 	inicio = chrono::steady_clock::now();
 
 	resultado.final =
-		algo::repararSolucion(resultado.inicial, tabla, parametros);
+		algo::repararSolucion(resultado.inicial, tabla, parametros, traza);
 
 	resultado.msReparacion = msDesde(inicio);
 	assertRestricciones(resultado.final);
@@ -180,9 +187,14 @@ int main(int argc, char **argv) {
 
 	try {
 		for (const auto &instancia : instancias) {
-			const auto resultado = resolver(instancia, opciones.parametros);
+			vector<io::PuntoTraza> traza;
+			const bool conTraza = !opciones.traza.empty();
+			const auto resultado = resolver(instancia, opciones.parametros,
+											conTraza ? &traza : nullptr);
 			io::imprimirResultado(instancia, resultado);
 			io::guardarResultado(instancia, resultado, opciones.salida);
+			if (conTraza)
+				io::guardarTraza(instancia, traza, opciones.traza);
 		}
 	} catch (const exception &e) {
 		cerr << "[e] error guardando solucion: " << e.what() << "\n";

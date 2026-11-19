@@ -63,6 +63,7 @@ El óptimo exacto se calcula por programación dinámica en O(k · L²) (Fisher,
 | `--semilla <n>` | Semilla de los generadores aleatorios. | `42` |
 | `--instancia <ruta>` | Resuelve solo esa instancia. | todas las de `data/preprocesado/instancias` |
 | `--salida <carpeta>` | Carpeta donde se guardan las soluciones. | `data/resultados/soluciones` |
+| `--traza <carpeta>` | Guarda la convergencia de Tabú por instancia en `<carpeta>/<instancia>.csv` (`iteracion,f_actual,f_mejor`; la fila 0 es la solución que recibe Tabú). Es solo para análisis: no cambia la búsqueda. | sin traza |
 | `--help` | Muestra la ayuda. | |
 
 Por ejemplo, para resolver una instancia con una lista tabú más corta y menos iteraciones, sin sobrescribir las soluciones base:

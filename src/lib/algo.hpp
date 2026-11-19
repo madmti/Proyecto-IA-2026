@@ -26,9 +26,12 @@ std::vector<int> generarSolucionInicial(const io::Instancia &instancia,
 // Mejora una solucion factible mediante movimientos.
 // Todos los movimientos deben mantener la factibilidad:
 // 1 <= t1 < t2 < ... < tk <= 254.
+// Si traza no es nullptr, registra f actual y mejor de cada iteracion (solo
+// para analisis; no cambia la busqueda).
 std::vector<int> repararSolucion(const std::vector<int> &inicial,
 								 const otsu::TablaOtsu &tabla,
-								 const Parametros &parametros);
+								 const Parametros &parametros,
+								 std::vector<io::PuntoTraza> *traza = nullptr);
 
 // Optimo global exacto: entre todas las combinaciones factibles
 // 1 <= t1 < ... < tk <= 254 devuelve todas las de mayor f(t) (empates con

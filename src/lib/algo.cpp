@@ -90,7 +90,8 @@ std::vector<std::tuple<int, int>> generarVecinos(std::vector<int> &actual,
 
 std::vector<int> tabusearch(const std::vector<int> &inicial,
 							const otsu::TablaOtsu &tabla,
-							const Parametros &parametros) {
+							const Parametros &parametros,
+							std::vector<io::PuntoTraza> *traza) {
 	// T arbitrario, probando nomas me sirvio T = 10 que fue mejor que 2 * size - 1
 	int size = static_cast<int>(inicial.size()), T = parametros.tenencia;
 	std::vector<int> actual = inicial, mejor = inicial;
@@ -99,6 +100,12 @@ std::vector<int> tabusearch(const std::vector<int> &inicial,
 	std::deque<std::tuple<int, int>> tabu;
 	for (int i = 0; i < size; i++)
 		tabu.push_back(std::make_tuple(i, inicial[i]));
+
+	// Registro para analisis (no interviene en la busqueda).
+	if (traza) {
+		traza->reserve(parametros.iteraciones + 1);
+		traza->push_back({fmax, fmax});
+	}
 
 	for (int i = 0; i < parametros.iteraciones; i++) {
 		if (T > 0)
@@ -141,6 +148,9 @@ std::vector<int> tabusearch(const std::vector<int> &inicial,
 			fmax = fcandidato;
 			mejor = actual;
 		}
+
+		if (traza)
+			traza->push_back({fcandidato, fmax});
 	}
 
 	return mejor;
@@ -148,8 +158,9 @@ std::vector<int> tabusearch(const std::vector<int> &inicial,
 
 std::vector<int> repararSolucion(const std::vector<int> &inicial,
 								 const otsu::TablaOtsu &tabla,
-								 const Parametros &parametros) {
-	return tabusearch(inicial, tabla, parametros);
+								 const Parametros &parametros,
+								 std::vector<io::PuntoTraza> *traza) {
+	return tabusearch(inicial, tabla, parametros, traza);
 }
 
 /*=================================================================

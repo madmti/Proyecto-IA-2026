@@ -227,4 +227,24 @@ filesystem::path guardarOptimo(const Instancia &instancia, const Optimo &optimo,
 	});
 }
 
+filesystem::path guardarTraza(const Instancia &instancia,
+							  const vector<PuntoTraza> &traza,
+							  const filesystem::path &carpeta) {
+	filesystem::create_directories(carpeta);
+	filesystem::path ruta = carpeta / instancia.ruta.filename();
+	ruta.replace_extension(".csv");
+
+	ofstream archivo(ruta);
+	if (!archivo.is_open())
+		throw runtime_error("No se pudo crear: " + ruta.string());
+	archivo << fixed << setprecision(10) << "iteracion,f_actual,f_mejor\n";
+	for (size_t i = 0; i < traza.size(); i++)
+		archivo << i << ',' << traza[i].fActual << ',' << traza[i].fMejor
+				<< '\n';
+	archivo.close();
+	if (archivo.fail())
+		throw runtime_error("Error al escribir: " + ruta.string());
+	return ruta;
+}
+
 } // namespace io
