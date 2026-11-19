@@ -76,14 +76,22 @@ Por ejemplo, para resolver una instancia con una lista tabú más corta y menos 
 
 ### Experimentos
 
-`make experimentos` ejecuta `scripts/experimentos.sh`. El script calcula los óptimos exactos y resuelve las 30 instancias con cada combinación de `T ∈ {0, 2, 5, 10, 15, 20, 30, 40}` e `iteraciones ∈ {50, 100, 200, 500, 1000, 2000}` (tarda unos segundos). Guarda en `data/resultados/experimentos/`:
+`make experimentos` ejecuta `scripts/experimentos.sh` en tres pasos (tarda unos segundos):
+
+1. **Óptimos:** calcula los óptimos exactos con programación dinámica.
+2. **Tuning:** resuelve las 30 instancias con cada combinación de `T ∈ {0, 2, 5, 10, 15, 20, 30, 40}` e `iteraciones ∈ {50, 100, 200, 500, 1000, 2000}`. Corre sin traza, así que sus tiempos son los válidos.
+3. **Trazas:** resuelve una vez por cada `T`, con el máximo de iteraciones, y registra la convergencia. Como el algoritmo es determinista, la traza de una corrida con menos iteraciones es el comienzo de esta.
+
+Guarda en `data/resultados/experimentos/`:
 
 | Archivo | Contenido |
 | --- | --- |
-| `sensibilidad.csv` | Una fila por configuración e instancia: `f` inicial, final y óptimo, brechas y tiempos. |
-| `resumen.csv` | Una fila por `(T, iteraciones, k)`: óptimos alcanzados, brecha media y máxima, y tiempo medio de Tabú. |
 | `entorno.txt` | CPU, memoria, sistema operativo y compilador usados. |
-| `soluciones/T<T>_it<iter>/` | Las soluciones de cada configuración. |
+| `tuning/sensibilidad.csv` | Una fila por configuración e instancia: `f` inicial, final y óptimo, brechas y tiempos. |
+| `tuning/resumen.csv` | Una fila por `(T, iteraciones, k)`: óptimos alcanzados, brecha media y máxima, y tiempo medio de Tabú. |
+| `tuning/soluciones/T<T>_it<iter>/` | Las soluciones de cada configuración. |
+| `trazas/T<T>/<instancia>.csv` | Convergencia de Tabú: `iteracion,f_actual,f_mejor`. |
+| `trazas/soluciones/T<T>/` | Las soluciones de las corridas con traza (sus tiempos no se usan). |
 
 Para cambiar la grilla se editan `TENENCIAS` e `ITERACIONES` al inicio del script.
 
