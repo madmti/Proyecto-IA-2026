@@ -11,6 +11,16 @@
 \usepackage{graphicx}
 \usepackage{url}
 \usepackage{array}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+% Colores categóricos en orden fijo, con marcadores distintos para impresión.
+\definecolor{serie1}{HTML}{2A78D6}
+\definecolor{serie2}{HTML}{EB6834}
+\definecolor{serie3}{HTML}{1BAF7A}
+% Filtra filas de una tabla CSV por el valor de una columna.
+\pgfplotsset{solo/.style 2 args={x filter/.append code={%
+    \edef\tempa{\thisrow{#1}}\edef\tempb{#2}%
+    \ifx\tempa\tempb\else\def\pgfmathresult{inf}\fi}}}
 \usepackage{tikz}
 \usetikzlibrary{decorations.pathreplacing, positioning, babel}
 \usepackage[top=3cm,bottom=3cm,left=3.5cm,right=3.5cm,footskip=1.5cm,headheight=1.5cm,headsep=.5cm]{geometry}
@@ -363,8 +373,108 @@ Los experimentos buscan responder cuatro preguntas: (i) qué tan cerca del ópti
 
 \section{Resultados}
 \label{sec:resultados}
-% TODO: tablas y gráficos comparativos; comparación con investigaciones
-% previas~\cite{Hammouche2010Comparative}.
+
+\subsection{Calidad y tiempo con la configuración base}
+La Tabla~\ref{tab:base} resume los resultados con $T = 10$ y 1.000 iteraciones. El Greedy queda en promedio a un 0,46\,\% del óptimo con $k = 2$ y a un 3,97\,\% con $k = 6$: su error crece con el número de umbrales, porque cada umbral se fija sin poder corregir los anteriores. TS corrige ese error en 29 de las 30 instancias, en las que alcanza exactamente el óptimo global. La única excepción es \texttt{imagen\_10\_k6}, que queda a un 0,22\,\% del óptimo ($f = 1340{,}06$ frente a $f^* = 1343{,}05$).
+
+\begin{table}[h]
+    \centering
+    \small
+    \begin{tabular}{c cc cc ccc}
+        \hline
+        & \multicolumn{2}{c}{Brecha Greedy (\%)} & \multicolumn{2}{c}{Greedy + TS} & \multicolumn{3}{c}{Tiempo medio por instancia} \\
+        $k$ & media & máx. & óptimos & brecha máx. (\%) & Greedy & TS & Prog. dinámica \\
+        \hline
+        2 & 0,46 & 1,20 & 10/10 & 0,00 & 3,4\,$\mu$s & 0,18\,ms & 0,09\,ms \\
+        4 & 2,75 & 4,13 & 10/10 & 0,00 & 4,2\,$\mu$s & 0,32\,ms & 0,28\,ms \\
+        6 & 3,97 & 5,52 & 9/10 & 0,22 & 4,7\,$\mu$s & 0,50\,ms & 0,47\,ms \\
+        \hline
+    \end{tabular}
+    \caption{Resultados con la configuración base ($T = 10$, 1.000 iteraciones), por número de umbrales.}
+    \label{tab:base}
+\end{table}
+
+En cuanto al tiempo, el Greedy tarda unos pocos microsegundos y TS menos de 0,5\,ms por instancia, un tiempo que crece con $k$, ya que aumentan tanto el número de vecinos ($2k$) como el costo de evaluar cada uno ($O(k)$). Como referencia, la búsqueda exhaustiva por backtracking tardaba unos 4\,s por instancia con $k = 4$ y no era práctica con $k = 6$, mientras que la programación dinámica obtiene el óptimo exacto en menos de 0,5\,ms, un tiempo similar al de TS para estos tamaños.
+
+\subsection{Sensibilidad a la tenencia y a las iteraciones}
+La Figura~\ref{fig:sensibilidad} muestra cuántas de las 30 instancias alcanzan el óptimo en cada configuración. Las iteraciones son el factor más importante: con 50 o 100 iteraciones solo se alcanzan las 10 instancias de $k = 2$, y con 200, 20 instancias. Esto se explica por el movimiento de $\pm 1$: cada iteración desplaza un umbral en un solo nivel de gris, por lo que llevar los umbrales desde la solución del Greedy hasta el óptimo requiere cientos de iteraciones. Desde 500 iteraciones, agregar más no cambia ningún resultado.
+
+La tenencia determina si TS escapa de los óptimos locales. Con $T \leq 5$ se alcanzan 28 de 30 instancias (la brecha máxima es 0,78\,\%), con $T$ entre 10 y 15 se alcanzan 29, y con $T \geq 20$ se alcanzan las 30, incluso con solo 500 iteraciones. Por lo tanto, la configuración base no es la mejor de la grilla: $T = 20$ con 500 iteraciones alcanza todos los óptimos en la mitad de iteraciones.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[width=0.48\textwidth, height=4.6cm, xlabel={Tenencia $T$}, ylabel={Óptimos alcanzados (de 30)},
+            ymin=24, ymax=31, xtick={0,5,10,15,20,30,40}, ytick={25,26,27,28,29,30}, grid=major, grid style={gray!20},
+            title={\small (a) 1.000 iteraciones}, tick label style={font=\scriptsize}, label style={font=\small}]
+            \addplot[serie1, thick, mark=*, mark size=1.8pt] table[x=tenencia, y=optimos, col sep=comma, solo={iteraciones}{1000}] {datos/totales.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \hfill
+    \begin{tikzpicture}
+        \begin{axis}[width=0.48\textwidth, height=4.6cm, xlabel={Iteraciones}, xmode=log, log basis x=10,
+            xtick={50,100,200,500,1000,2000}, xticklabels={50,100,200,500,1000,2000},
+            ymin=0, ymax=32, ytick={0,10,20,30}, grid=major, grid style={gray!20},
+            title={\small (b) Según iteraciones}, tick label style={font=\scriptsize}, label style={font=\small},
+            legend style={font=\scriptsize, at={(0.97,0.03)}, anchor=south east}]
+            \addplot[serie1, thick, mark=*, mark size=1.8pt] table[x=iteraciones, y=optimos, col sep=comma, solo={tenencia}{10}] {datos/totales.csv};
+            \addplot[serie2, thick, dashed, mark=square*, mark size=1.6pt] table[x=iteraciones, y=optimos, col sep=comma, solo={tenencia}{20}] {datos/totales.csv};
+            \legend{$T = 10$, $T = 20$}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Número de instancias (de 30) en que Greedy + TS alcanza el óptimo global: (a) según la tenencia, con 1.000 iteraciones; (b) según el número de iteraciones, con $T = 10$ y $T = 20$.}
+    \label{fig:sensibilidad}
+\end{figure}
+
+\subsection{Convergencia}
+La Figura~\ref{fig:convergencia} muestra la evolución de TS en \texttt{imagen\_10\_k6} con $T = 10$ y $T = 20$. En ambos casos, el valor de la solución actual sube de forma sostenida durante las primeras cientos de iteraciones y, a partir del óptimo local cercano a 1340, comienza a oscilar, porque TS acepta movimientos que empeoran. Las dos búsquedas son idénticas hasta la iteración 336, en la que encuentran $f = 1340{,}06$. Con $T = 10$, la búsqueda no supera ese valor: desde la iteración 559, la secuencia de valores de la solución actual se repite exactamente cada 110 iteraciones, es decir, TS queda atrapado en un ciclo, porque la lista tabú es demasiado corta para impedir volver a las mismas soluciones. Con $T = 20$, la lista más larga obliga a la búsqueda a salir de esa zona, y en la iteración 427 alcanza el óptimo global.
+
+\begin{figure}[h]
+    \centering
+    \pgfplotsset{conv/.style={width=0.48\textwidth, height=4.6cm, xmin=0, xmax=2000, ymin=1330, ymax=1345,
+        xlabel={Iteración}, tick label style={font=\scriptsize}, label style={font=\small}, grid=major, grid style={gray!20},
+        legend style={font=\scriptsize, at={(0.97,0.03)}, anchor=south east}}}
+    \begin{tikzpicture}
+        \begin{axis}[conv, ylabel={$f$}, title={\small (a) $T = 10$}]
+            \addplot[gray!60, thin, each nth point=2] table[x=iteracion, y=f_actual, col sep=comma] {datos/traza_imagen_10_k6_T10.csv};
+            \addplot[serie1, thick] table[x=iteracion, y=f_mejor, col sep=comma] {datos/traza_imagen_10_k6_T10.csv};
+            \addplot[black, dashed] coordinates {(0,1343.048) (2000,1343.048)};
+            \legend{actual, mejor, $f^*$}
+        \end{axis}
+    \end{tikzpicture}
+    \hfill
+    \begin{tikzpicture}
+        \begin{axis}[conv, title={\small (b) $T = 20$}]
+            \addplot[gray!60, thin, each nth point=2] table[x=iteracion, y=f_actual, col sep=comma] {datos/traza_imagen_10_k6_T20.csv};
+            \addplot[serie1, thick] table[x=iteracion, y=f_mejor, col sep=comma] {datos/traza_imagen_10_k6_T20.csv};
+            \addplot[black, dashed] coordinates {(0,1343.048) (2000,1343.048)};
+            \legend{actual, mejor, $f^*$}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Convergencia de TS en \texttt{imagen\_10\_k6}: valor de la solución actual y de la mejor encontrada en cada iteración, frente al óptimo global $f^*$. El eje vertical parte en 1330; el Greedy entrega $f = 1301{,}46$.}
+    \label{fig:convergencia}
+\end{figure}
+
+\subsection{Segmentaciones obtenidas}
+La Figura~\ref{fig:segmentaciones} muestra una de las imágenes segmentada con distintos valores de $k$. Con $k = 2$, el tumor queda aislado en la clase más clara, pero comparte esa clase con el cráneo, que tiene intensidades similares: como la umbralización solo usa el histograma, no puede distinguir estructuras de igual intensidad en distintas ubicaciones. Al aumentar $k$ aparecen más estructuras, como la diferencia entre materia gris y blanca y el borde del tumor. Las segmentaciones de TS y del óptimo con $k = 6$ difieren visiblemente en el tejido cerebral, aunque sus valores de $f$ difieren solo en un 0,22\,\%: una brecha pequeña en la función objetivo no implica una segmentación parecida.
+
+\begin{figure}[h]
+    \centering
+    \setlength{\tabcolsep}{1.5pt}
+    \begin{tabular}{ccccc}
+        \includegraphics[width=0.185\textwidth]{figuras/imagen_10_original.jpg} &
+        \includegraphics[width=0.185\textwidth]{figuras/imagen_10_k2.png} &
+        \includegraphics[width=0.185\textwidth]{figuras/imagen_10_k4.png} &
+        \includegraphics[width=0.185\textwidth]{figuras/imagen_10_k6.png} &
+        \includegraphics[width=0.185\textwidth]{figuras/imagen_10_k6_optimo.png} \\
+        \small Original & \small $k = 2$ & \small $k = 4$ & \small $k = 6$ (TS) & \small $k = 6$ (óptimo)
+    \end{tabular}
+    \caption{Segmentaciones de \texttt{imagen\_10} con la configuración base. Cada clase se muestra con un tono de gris distinto, equiespaciados de negro a blanco.}
+    \label{fig:segmentaciones}
+\end{figure}
+
+\subsection{Comparación con el estado del arte}
+Hammouche et al.~\cite{Hammouche2010Comparative} reportan, para el criterio de Otsu en seis imágenes de $256 \times 256$ y 50 ejecuciones por método, que GA, PSO y DE alcanzan el óptimo en casi todos los casos hasta 4 umbrales, mientras que su TS solo lo alcanza de forma consistente con un umbral: desde 2 umbrales, su valor medio difiere del óptimo en las seis imágenes. En este trabajo, en cambio, Greedy + TS alcanza el óptimo en 29 de 30 instancias con la configuración base, y en las 30 con $T \geq 20$, con hasta 6 umbrales. Aunque las imágenes difieren y la comparación no es directa, la diferencia de comportamiento sugiere que el desempeño de TS depende fuertemente de su diseño: aquí la búsqueda parte de una solución Greedy cercana al óptimo, evalúa el vecindario completo en cada iteración gracias a la evaluación en $O(k)$, y su memoria crece con $k$. Por otro lado, el estudio citado no reporta resultados para más de 4 umbrales, por lo que no es posible comparar el caso $k = 6$.
 
 \section{Conclusiones}
 % TODO
