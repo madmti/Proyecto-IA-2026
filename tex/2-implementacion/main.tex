@@ -10,6 +10,8 @@
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{url}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing, babel}
 \usepackage[top=3cm,bottom=3cm,left=3.5cm,right=3.5cm,footskip=1.5cm,headheight=1.5cm,headsep=.5cm]{geometry}
 
 \begin{document}
@@ -233,7 +235,29 @@ Esta formulación tiene dos consecuencias. Primero, como $P$ y $S$ se calculan u
 lo que permite calcular el óptimo global $f^*$ mediante programación dinámica en $O(k L^2)$ operaciones~\cite{Fisher1958Grouping, Luessi2009Framework}, en lugar de las $O(L^k)$ de la enumeración.
 
 \section{Representación}
-% TODO
+\label{sec:representacion}
+Una solución se representa como un vector de $k$ enteros ordenados $\mathbf{t} = (t_1, \dots, t_k)$, donde cada $t_i$ es directamente un nivel de gris. Junto con los extremos fijos $t_0 = 0$ y $t_{k+1} = 256$, el vector define las $k+1$ clases $C_j = \{t_j, \dots, t_{j+1}-1\}$, como muestra la Figura~\ref{fig:representacion}. Cada vector que cumple las restricciones corresponde a exactamente una segmentación, y cada segmentación por umbrales a exactamente un vector: la representación coincide con el espacio de búsqueda $S_k$, sin soluciones repetidas (por ejemplo, permutaciones de los mismos umbrales) ni soluciones infactibles que haya que reparar o penalizar.
+
+\begin{figure}[h]
+    \centering
+    \begin{tikzpicture}[x=0.042cm, y=1cm]
+        \draw[->] (-2,0) -- (264,0);
+        \foreach \x/\l in {0/0, 255/255} { \draw (\x,-0.1) -- (\x,0.1); \node[below] at (\x,-0.1) {\scriptsize $\l$}; }
+        \foreach \x/\l in {23/t_1{=}23, 52/t_2{=}52, 87/t_3{=}87, 138/t_4{=}138} {
+            \draw[thick, red] (\x,-0.25) -- (\x,0.25);
+            \node[below, red] at (\x,-0.25) {\scriptsize $\l$};
+        }
+        \foreach \x/\l in {11/C_0, 37/C_1, 70/C_2, 112/C_3, 197/C_4} { \node[above] at (\x,0.1) {\small $\l$}; }
+        \draw[decorate, decoration={brace, amplitude=4pt, mirror}] (52,-0.75) -- (87,-0.75)
+            node[midway, below=5pt] {\scriptsize $\omega_2 = P(87) - P(52)$};
+    \end{tikzpicture}
+    \caption{Representación de la solución óptima de \texttt{imagen\_10} con $k = 4$: el vector $\mathbf{t} = (23, 52, 87, 138)$ divide los niveles de gris en cinco clases.}
+    \label{fig:representacion}
+\end{figure}
+
+Se eligió esta representación por tres razones. Primero, es exacta: como los niveles de gris son discretos, no requiere redondear valores reales ni decodificar cadenas de bits. Segundo, simplifica el manejo de restricciones con el movimiento utilizado, que cambia un umbral en $\pm 1$. Un movimiento de este tipo solo puede producir una solución infactible de dos formas: llevando un umbral fuera del rango $[1, 254]$, o igualándolo a un umbral vecino. Basta descartar esos dos casos para que la búsqueda recorra únicamente soluciones factibles, y el orden se mantiene sin verificarlo, porque un cambio de una unidad no puede saltar sobre otro umbral. Tercero, el vector se evalúa directamente con la formulación separable~\eqref{eq:separable}: cada par de umbrales consecutivos $(t_j, t_{j+1})$ determina un término $\varphi$.
+
+En la implementación, la solución es un arreglo de $k$ enteros cuya posición $i$ guarda $t_i$, y el histograma se resume en dos arreglos de 256 reales con las sumas acumuladas $P$ y $S$, que se calculan una vez por instancia. Con ellos, evaluar una solución cuesta $O(k)$, sin importar el tamaño de la imagen.
 
 \section{Descripción del algoritmo}
 % TODO: función de evaluación con tablas precalculadas~\cite{Liao2001Fast},
