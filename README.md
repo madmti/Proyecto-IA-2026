@@ -38,6 +38,7 @@ make run              # ejecuta Greedy + Tabú Search sobre todas las instancias
 make run-exhaustiva   # calcula el óptimo exacto de las 30 instancias (programación dinámica)
 make run-compare      # compara los resultados con el óptimo exacto
 make experimentos     # análisis de sensibilidad de T e iteraciones (CSV)
+make figuras          # imágenes segmentadas para el informe
 make clean            # elimina lo compilado
 make help             # lista todos los comandos
 ```
@@ -95,6 +96,14 @@ Guarda en `data/resultados/experimentos/`:
 
 Para cambiar la grilla se editan `TENENCIAS` e `ITERACIONES` al inicio del script.
 
+### Figuras
+
+`make figuras` ejecuta `scripts/figuras.sh`, que resuelve con la configuración base y escribe en `tex/2-implementacion/figuras/`:
+- las imágenes `imagen_03` e `imagen_10`, originales y segmentadas con `k = 2, 4, 6`;
+- la comparación de `imagen_10_k6` entre la solución de Tabú y el óptimo exacto.
+
+Las figuras se versionan junto al informe.
+
 ## Estructura
 
 | Ruta | Contenido |
@@ -112,6 +121,7 @@ Para cambiar la grilla se editan `TENENCIAS` e `ITERACIONES` al inicio del scrip
 | `data/preprocesado/` | Imágenes de 256 × 256 e instancias generadas (no versionadas). |
 | `data/resultados/` | Soluciones (`soluciones/`), óptimos exactos (`optimos/`) y experimentos (`experimentos/`) generados (no versionados). |
 | `scripts/experimentos.sh` | Grilla de parámetros para el análisis de sensibilidad. |
+| `scripts/figuras.sh` | Imágenes segmentadas para el informe. |
 | `tex/` | Informes y presentaciones del ramo (ver abajo). |
 
 ## Formatos

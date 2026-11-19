@@ -13,6 +13,7 @@ build/*
 tex/*/*
 !tex/*/*.tex
 !tex/*/*.bib
+!tex/*/figuras/
 
 # clangd
 .cache/
