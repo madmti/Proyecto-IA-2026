@@ -59,7 +59,6 @@ encontrar una buena combinaci\'on se transforma en un problema complejo de optim
 
 % B.1a: copiado del Informe 1 (tex/0-estado-del-arte).
 % B.1b: agregados naturaleza del problema, variables, objetivos y dificultades.
-% Pendiente: correcciones de B.1c (Estado del arte y Modelo).
 \section{Definici\'on del Problema}
 La segmentación de imágenes consiste en dividir una imagen en regiones que correspondan a estructuras distintas. En la segmentación por umbrales, esta división se hace únicamente según la intensidad de cada píxel: se escogen uno o más niveles de gris, llamados umbrales, y cada píxel se asigna a la región cuyo rango de intensidades contiene su nivel de gris. Como la asignación depende solo de la intensidad, toda la información necesaria está contenida en el histograma de la imagen, que indica cuántos píxeles tiene cada nivel de gris; por esto, el costo de evaluar una combinación de umbrales no depende del tamaño de la imagen. El resultado es una imagen dividida en regiones de intensidad que, en una MRI cerebral, pueden aproximar estructuras como el fondo, el tejido cerebral o un tumor. Escoger los umbrales es un problema de optimización combinatoria: los umbrales toman valores enteros dentro de un rango finito, el número de combinaciones posibles crece rápidamente con la cantidad de umbrales, y se busca la combinación que mejor cumpla un criterio de calidad.
 
@@ -175,12 +174,7 @@ En palabras, se busca el conjunto de umbrales que produzca regiones cuyas intens
 Una clase puede contener un rango de intensidades no vac\'io y, aun as\'i, no contener p\'ixeles ($\omega_j = 0$), en cuyo caso $\mu_j$ no est\'a definida. Se adopta la convenci\'on de que dicho t\'ermino aporta $0$ a la suma, lo cual es consistente, pues $\mu_j \in [0, 255]$ implica $\omega_j (\mu_j - \mu_T)^2 \leq 255^2\, \omega_j$, que tiende a $0$ cuando $\omega_j \to 0$.
 
 \subsection{Restricciones}
-\begin{itemize}
-    \item \textbf{Cota inferior:} $1 \leq t_1$. El primer umbral debe ser al menos 1, de modo que la clase $C_0$ contenga al menos el nivel de intensidad 0.
-    \item \textbf{Orden estricto:} $t_i < t_{i+1}, \ i = 1, \dots, k-1$. Los umbrales deben ser distintos y estar ordenados de forma creciente. Esto asegura que las clases sean intervalos disjuntos y no vac\'ios que, en conjunto, cubren todo el dominio $G$, por lo que cada nivel de intensidad pertenece a exactamente una regi\'on. Dado que los umbrales son enteros, esta restricci\'on equivale a $t_{i+1} \geq t_i + 1$.
-    \item \textbf{Cota superior:} $t_k \leq 254$. El \'ultimo umbral no puede superar el nivel 254, lo que acota los umbrales al rango de intensidades definido para el problema.
-    \item \textbf{Integralidad:} $t_i \in \mathbb{Z}, \ i = 1, \dots, k$. Los umbrales son enteros, ya que las intensidades de una imagen de 8 bits corresponden a niveles discretos.
-\end{itemize}
+El primer umbral debe ser al menos 1 ($1 \leq t_1$), de modo que la clase $C_0$ contenga al menos el nivel 0, y el último no puede superar el nivel 254 ($t_k \leq 254$). Los umbrales deben ser enteros, ya que las intensidades de una imagen de 8 bits son niveles discretos, y estar ordenados de forma estrictamente creciente ($t_i < t_{i+1}$, o bien $t_{i+1} \geq t_i + 1$). Esto asegura que las clases sean intervalos disjuntos y no vacíos que, en conjunto, cubren todo el dominio $G$, por lo que cada nivel de intensidad pertenece a exactamente una región.
 
 \subsection{Modelo Completo}
 \begin{equation}
@@ -213,7 +207,30 @@ Cada soluci\'on factible equivale a escoger $k$ niveles de intensidad distintos 
     \label{tab:espacio}
 \end{table}
 
-Pasar de $k = 4$ a $k = 6$ multiplica el espacio de b\'usqueda por $2.075$. Como referencia, Hammouche et al.~\cite{Hammouche2010Comparative} reportan que la b\'usqueda exhaustiva con 4 umbrales sobre im\'agenes de $256 \times 256$ p\'ixeles tom\'o entre 5 y 15 minutos aproximadamente. Para $k = 2$ una b\'usqueda exhaustiva resulta trivial, pero para $k = 6$ deja de ser pr\'actica, lo que motiva el uso de metaheur\'isticas.
+Pasar de $k = 4$ a $k = 6$ multiplica el espacio de b\'usqueda por $2.075$. Como referencia, Hammouche et al.~\cite{Hammouche2010Comparative} reportan que la b\'usqueda exhaustiva con 4 umbrales sobre im\'agenes de $256 \times 256$ p\'ixeles tom\'o entre 5 y 15 minutos aproximadamente. Para $k = 2$ una enumeración exhaustiva resulta trivial, pero para $k = 6$ deja de ser práctica. Sin embargo, la estructura de la función objetivo permite obtener el óptimo exacto sin enumerar las soluciones (Sección~\ref{sec:separable}).
+
+\subsection{Formulación Separable}
+\label{sec:separable}
+Como formulación propia, se reescribe el modelo aprovechando que cada término de~\eqref{eq:otsu} depende solo de los extremos de su clase. Sean $P(t) = \sum_{g < t} p_g$ y $S(t) = \sum_{g < t} g\, p_g$ las sumas acumuladas del histograma, y sea, para $0 \leq a < b \leq 256$,
+\begin{equation}
+    \varphi(a, b) =
+    \begin{cases}
+        \omega_{ab} \left( \dfrac{S(b) - S(a)}{\omega_{ab}} - \mu_T \right)^2 & \text{si } \omega_{ab} = P(b) - P(a) > 0, \\[2mm]
+        0 & \text{si } \omega_{ab} = 0,
+    \end{cases}
+\end{equation}
+el aporte de una clase con intensidades $\{a, \dots, b-1\}$. Entonces el problema es equivalente a
+\begin{equation}
+    \max_{\mathbf{t} \in S_k} \; f(\mathbf{t}) = \sum_{j=0}^{k} \varphi(t_j, t_{j+1}), \qquad t_0 = 0, \; t_{k+1} = 256.
+    \label{eq:separable}
+\end{equation}
+Esta formulación tiene dos consecuencias. Primero, como $P$ y $S$ se calculan una sola vez por instancia, cada $\varphi$ se obtiene en $O(1)$ y $f$ se evalúa en $O(k)$, independientemente del tamaño de la imagen~\cite{Liao2001Fast}. Segundo, el mejor valor alcanzable con $j$ umbrales, el último en $t$, solo depende del mejor valor con $j - 1$ umbrales:
+\begin{equation}
+    D_1(t) = \varphi(0, t), \qquad
+    D_j(t) = \max_{s < t} \; D_{j-1}(s) + \varphi(s, t), \qquad
+    f^* = \max_{t} \; D_k(t) + \varphi(t, 256),
+\end{equation}
+lo que permite calcular el óptimo global $f^*$ mediante programación dinámica en $O(k L^2)$ operaciones~\cite{Fisher1958Grouping, Luessi2009Framework}, en lugar de las $O(L^k)$ de la enumeración.
 
 \section{Representación}
 % TODO
