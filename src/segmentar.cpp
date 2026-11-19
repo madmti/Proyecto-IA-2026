@@ -1,7 +1,10 @@
 #include "lib/img.hpp"
+#include <exception>
+#include <filesystem>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 using namespace std;
 

@@ -2,6 +2,7 @@
 #include "lib/io.hpp"
 #include "lib/otsu.hpp"
 
+#include <chrono>
 #include <exception>
 #include <iostream>
 #include <vector>

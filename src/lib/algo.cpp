@@ -1,8 +1,8 @@
 #include "algo.hpp"
 #include "otsu.hpp"
 #include <algorithm>
-#include <cassert>
-#include <queue>
+#include <cmath>
+#include <deque>
 #include <random>
 #include <tuple>
 #include <vector>
