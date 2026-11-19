@@ -95,7 +95,7 @@ Guarda en `data/resultados/experimentos/`:
 | `trazas/T<T>/<instancia>.csv` | Convergencia de Tabú: `iteracion,f_actual,f_mejor`. |
 | `trazas/soluciones/T<T>/` | Las soluciones de las corridas con traza (sus tiempos no se usan). |
 
-Además copia a `tex/2-implementacion/datos/` los CSV que usan los gráficos y tablas del informe: `resumen.csv`, `base.csv` (las 30 instancias con la configuración base, `T = 10` y 1000 iteraciones) y las trazas de `imagen_10_k6` con `T = 10` y `T = 20`. Esa carpeta se versiona junto al informe.
+Además copia a `tex/2-implementacion/datos/` los CSV que usan los gráficos y tablas del informe: `resumen.csv`, `totales.csv` (óptimos alcanzados de 30 por cada `T` e iteraciones), `base.csv` (las 30 instancias con la configuración base, `T = 10` y 1000 iteraciones) y las trazas de `imagen_10_k6` con `T = 10` y `T = 20`. Esa carpeta se versiona junto al informe.
 
 Para cambiar la grilla se editan `TENENCIAS` e `ITERACIONES` al inicio del script.
 

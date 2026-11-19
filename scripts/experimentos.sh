@@ -25,6 +25,9 @@
 #
 # Y copia a tex/2-implementacion/datos/ los CSV que lee el informe (pgfplots):
 #   resumen.csv                      el de tuning/
+#   totales.csv                      resumen.csv sumado sobre k: una fila por
+#                                    (T, iteraciones) con optimos de 30 y
+#                                    brecha maxima (%)
 #   base.csv                         filas de sensibilidad.csv con la
 #                                    configuracion base (T_BASE, IT_BASE)
 #   traza_imagen_10_k6_T<T>.csv      convergencia de imagen_10_k6 con T = 10 y 20
@@ -104,6 +107,23 @@ done
 rm -rf "$INFORME"
 mkdir -p "$INFORME"
 cp "$SALIDA/tuning/resumen.csv" "$INFORME/"
+# Columnas de resumen.csv: 1 tenencia, 2 iteraciones, 4 optimos, 5 instancias,
+# 7 brecha_max.
+awk -F, '
+NR > 1 {
+	c = $1 "," $2
+	if (!(c in n)) orden[++m] = c
+	opt[c] += $4
+	n[c] += $5
+	if ($7 > max[c]) max[c] = $7
+}
+END {
+	print "tenencia,iteraciones,optimos,instancias,brecha_max"
+	for (i = 1; i <= m; i++) {
+		c = orden[i]
+		printf "%s,%d,%d,%.6f\n", c, opt[c], n[c], max[c]
+	}
+}' "$SALIDA/tuning/resumen.csv" >"$INFORME/totales.csv"
 awk -F, -v t="$T_BASE" -v it="$IT_BASE" 'NR == 1 || ($3 == t && $4 == it)' \
 	"$CSV" >"$INFORME/base.csv"
 for T in 10 20; do
