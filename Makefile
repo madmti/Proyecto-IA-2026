@@ -27,10 +27,16 @@ PDFLATEX = pdflatex -shell-escape -interaction=nonstopmode -halt-on-error
 BIBTEX = bibtex
 TEX_AUX = aux log bbl blg out toc nav snm vrb lof lot fls fdb_latexmk synctex.gz
 
+# Entrega: <apellido><inicial><rol sin DV>, con el informe y el codigo en carpetas aparte.
+ENTREGA = PeñalozaM202373037
+ENTREGA_DIR = build/$(ENTREGA)
+INFORME_DIR = $(TEX_DIR)/2-implementacion
+CODIGO = Makefile README.md .clang-format src scripts
+
 PREPROCESADO_STAMP := $(DATA_PREPROCESADO)/.generado
 IMAGENES_ORIGINALES := $(wildcard $(DATA_ORIGINAL)/*.jpg $(DATA_ORIGINAL)/*.jpeg)
 
-.PHONY: all programas preprocesado run run-exhaustiva run-compare experimentos figuras clean clean-datos distclean help \
+.PHONY: all programas preprocesado run run-exhaustiva run-compare experimentos figuras entrega clean clean-datos distclean help \
 	pdf pdf-estado-del-arte pdf-avance pdf-implementacion pdf-final clean-tex distclean-tex
 .SECONDEXPANSION:
 .SECONDARY: $(PROGRAMAS_OBJ)
@@ -69,6 +75,19 @@ experimentos: $(BIN_DIR)/main $(BIN_DIR)/exhaustiva $(BIN_DIR)/compare preproces
 figuras: $(BIN_DIR)/main $(BIN_DIR)/exhaustiva $(BIN_DIR)/segmentar preprocesado
 	@bash scripts/figuras.sh
 
+# Pipeline completo (instancias, experimentos, figuras e informe) y zip de la entrega.
+entrega:
+	$(RM) $(INFORME_DIR)/main.pdf
+	@$(MAKE) --no-print-directory all experimentos figuras pdf-implementacion clean-tex
+	$(RM) -r $(ENTREGA_DIR) $(ENTREGA).zip
+	mkdir -p $(ENTREGA_DIR)/informe $(ENTREGA_DIR)/codigo/data
+	cp -r $(INFORME_DIR)/. $(ENTREGA_DIR)/informe/
+	cp -r $(CODIGO) $(ENTREGA_DIR)/codigo/
+	cp -r $(DATA_ORIGINAL) $(ENTREGA_DIR)/codigo/data/
+	cd build && zip -qr ../$(ENTREGA).zip $(ENTREGA)
+	$(RM) -r $(ENTREGA_DIR)
+	@echo "[i] $(ENTREGA).zip listo"
+
 # Informes y presentaciones (pdflatex + bibtex), una carpeta por entrega.
 pdf: $(TEX_PDFS)
 pdf-estado-del-arte: $(TEX_DIR)/0-estado-del-arte/main.pdf
@@ -102,6 +121,7 @@ help:
 	@echo "make run-compare    Compara greedy y tabu contra el optimo exacto"
 	@echo "make experimentos   Grilla de T e iteraciones sobre las 30 instancias (CSV)"
 	@echo "make figuras        Imagenes segmentadas para el informe"
+	@echo "make entrega        Pipeline completo + zip con informe/ y codigo/"
 	@echo "make clean          Elimina lo compilado"
 	@echo "make clean-datos    Elimina las instancias generadas"
 	@echo "make distclean      clean + clean-datos"
