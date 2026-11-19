@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <deque>
+#include <functional>
 #include <random>
 #include <tuple>
 #include <vector>
@@ -183,13 +184,68 @@ void backtracking(std::vector<int> umbrales, int next, double facc, int k,
 	}
 };
 
+// Programacion dinamica (Fisher, 1958; Luessi et al., 2009). Como f(t) es una
+// suma de terminos que dependen solo de los extremos de cada clase, el mejor
+// valor con j umbrales y el ultimo en t solo depende del mejor con j - 1:
+//   D[1][t] = fTerm(0, t)
+//   D[j][t] = max_{s < t} D[j - 1][s] + fTerm(s, t)
+//   f*      = max_t D[k][t] + fTerm(t, 256)
+// Cuesta O(k * L^2) en vez de O(L^k). Guarda todos los predecesores empatados
+// (tolerancia EPS_EMPATE) para devolver todas las soluciones optimas.
+void programacionDinamica(int k, const otsu::TablaOtsu &tabla,
+						  std::vector<std::vector<int>> &sols) {
+	// Iguala el candidato con el mejor valor actual, como en backtracking.
+	auto actualizar = [](double valor, int s, double &mejor,
+						 std::vector<int> &empatados) {
+		double diff = valor - mejor;
+		if (diff > EPS_EMPATE) {
+			mejor = valor;
+			empatados = {s};
+		} else if (std::abs(diff) <= EPS_EMPATE) {
+			empatados.push_back(s);
+		}
+	};
+
+	std::vector<std::vector<double>> D(k + 1, std::vector<double>(256, -1.0));
+	std::vector<std::vector<std::vector<int>>> pred(
+		k + 1, std::vector<std::vector<int>>(256));
+
+	// El umbral j vive en [j, 254 - k + j] para dejar espacio a los demas.
+	for (int t = 1; t <= 254 - k + 1; t++)
+		D[1][t] = otsu::fTerm(tabla, 0, t);
+	for (int j = 2; j <= k; j++)
+		for (int t = j; t <= 254 - k + j; t++)
+			for (int s = j - 1; s < t; s++)
+				actualizar(D[j - 1][s] + otsu::fTerm(tabla, s, t), s, D[j][t],
+						   pred[j][t]);
+
+	double maxf = -1.0;
+	std::vector<int> finales;
+	for (int t = k; t <= 254; t++)
+		actualizar(D[k][t] + otsu::fTerm(tabla, t, 256), t, maxf, finales);
+
+	// Reconstruye hacia atras todas las combinaciones empatadas.
+	std::vector<int> umbrales(k);
+	std::function<void(int, int)> reconstruir = [&](int j, int t) {
+		umbrales[j - 1] = t;
+		if (j == 1) {
+			sols.push_back(umbrales);
+			return;
+		}
+		for (int s : pred[j][t])
+			reconstruir(j - 1, s);
+	};
+	for (int t : finales)
+		reconstruir(k, t);
+	std::sort(sols.begin(), sols.end());
+}
+
 std::vector<std::vector<int>>
 buscarOptimoExhaustivo(const io::Instancia &instancia,
 					   const otsu::TablaOtsu &tabla) {
 
 	std::vector<std::vector<int>> soluciones;
-	double maxf = -1.0;
-	backtracking({}, 0, 0.0, instancia.k, tabla, soluciones, maxf);
+	programacionDinamica(instancia.k, tabla, soluciones);
 	return soluciones;
 }
 

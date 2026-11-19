@@ -30,9 +30,10 @@ std::vector<int> repararSolucion(const std::vector<int> &inicial,
 								 const otsu::TablaOtsu &tabla,
 								 const Parametros &parametros);
 
-// Busqueda exhaustiva: evalua todas las combinaciones factibles
-// 1 <= t1 < ... < tk <= 254 y devuelve todas las de mayor f(t) (empates con
-// tolerancia 1e-12), en orden lexicografico.
+// Optimo global exacto: entre todas las combinaciones factibles
+// 1 <= t1 < ... < tk <= 254 devuelve todas las de mayor f(t) (empates con
+// tolerancia 1e-12), en orden lexicografico. Usa programacion dinamica en
+// O(k * L^2); el backtracking exhaustivo queda como alternativa en algo.cpp.
 std::vector<std::vector<int>>
 buscarOptimoExhaustivo(const io::Instancia &instancia,
 					   const otsu::TablaOtsu &tabla);

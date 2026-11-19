@@ -44,8 +44,6 @@ int main() {
 
 	try {
 		for (const auto &instancia : instancias) {
-			if (instancia.k > 4)
-				continue;
 			const auto optimo = resolver(instancia);
 			io::imprimirOptimo(instancia, optimo);
 			io::guardarOptimo(instancia, optimo, CARPETA_OPTIMOS);

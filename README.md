@@ -35,7 +35,7 @@ Para compilar los informes y presentaciones de `tex/` se necesitan además `pdfl
 ```bash
 make                  # compila y genera las 30 instancias (10 imágenes × k = 2, 4, 6)
 make run              # ejecuta Greedy + Tabú Search sobre todas las instancias
-make run-exhaustiva   # calcula el óptimo exacto por búsqueda exhaustiva (solo k <= 4)
+make run-exhaustiva   # calcula el óptimo exacto de las 30 instancias (programación dinámica)
 make run-compare      # compara los resultados con el óptimo exacto
 make clean            # elimina lo compilado
 make help             # lista todos los comandos
@@ -45,7 +45,7 @@ Los ejecutables quedan en `build/bin/` y deben ejecutarse desde la raíz del rep
 
 La semilla que elige las 10 imágenes se puede cambiar con `make SEMILLA=7`. Por defecto es 42.
 
-La búsqueda exhaustiva omite `k = 6`, porque su espacio de búsqueda tiene unos 3,5 · 10¹¹ elementos. Con `k = 4` tarda algunos segundos por instancia.
+El óptimo exacto se calcula por programación dinámica en O(k · L²) (Fisher, 1958; Luessi et al., 2009) y tarda menos de 1 ms por instancia. Esto aprovecha que `f` es una suma de términos que solo dependen de los extremos de cada clase. Antes se usaba un backtracking exhaustivo, que sigue disponible en `algo.cpp`: con `k = 4` tardaba unos 4 s por instancia y con `k = 6` resultaba impracticable (unas 3,5 · 10¹¹ combinaciones).
 
 ### Parámetros del algoritmo
 
@@ -77,11 +77,11 @@ Por ejemplo, para resolver una instancia con una lista tabú más corta y menos 
 | Ruta | Contenido |
 | --- | --- |
 | `src/main.cpp` | Resuelve cada instancia (Greedy + Tabú Search) y guarda las soluciones. |
-| `src/exhaustiva.cpp` | Búsqueda exhaustiva (backtracking) del óptimo global. |
+| `src/exhaustiva.cpp` | Calcula el óptimo global exacto de cada instancia (programación dinámica). |
 | `src/compare.cpp` | Tabla comparativa entre las soluciones y el óptimo. |
 | `src/preprocesar.cpp` | Selecciona las imágenes, las lleva a 256 × 256 en gris y genera las instancias (histograma + `k`). |
 | `src/segmentar.cpp` | Aplica umbrales dados por consola a una imagen y guarda la segmentación. |
-| `src/lib/algo.*` | Greedy, Tabú Search y búsqueda exhaustiva. |
+| `src/lib/algo.*` | Greedy, Tabú Search y óptimo exacto (programación dinámica y backtracking). |
 | `src/lib/otsu.*` | Función objetivo de Otsu con sumas acumuladas (evaluación en O(k)). |
 | `src/lib/io.*` | Lectura de instancias y escritura de soluciones y óptimos. |
 | `src/lib/img.*` | Manejo de imágenes e histogramas. |
