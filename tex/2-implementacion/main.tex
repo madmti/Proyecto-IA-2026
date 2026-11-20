@@ -301,11 +301,11 @@ El método combina una heurística constructiva Greedy, que genera la solución 
 Las soluciones se evalúan con la formulación separable~\eqref{eq:separable}. Al leer una instancia se calculan una sola vez las sumas acumuladas $P$ y $S$ del histograma, en $O(L)$; luego cada término $\varphi(t_j, t_{j+1})$ se obtiene con dos restas y una división, y $f(\mathbf{t})$ en $O(k)$~\cite{Liao2001Fast}. Una clase sin píxeles aporta 0, según la convención del modelo. La función no tiene parámetros y es la misma que usan el Greedy, TS y la programación dinámica, por lo que los valores obtenidos por los tres son directamente comparables.
 
 \subsection{Solución inicial: Greedy}
-El Greedy construye los umbrales de izquierda a derecha (Figura~\ref{fig:pseudocodigo}, arriba). Para elegir el umbral $t_i$, prueba cada candidato $u$ entre $t_{i-1} + 1$ y $254 - k + i$; esta cota superior deja espacio para los $k - i$ umbrales restantes, por lo que la solución es factible por construcción. Cada candidato se puntúa con el aporte de la clase que cierra, $\varphi(t_{i-1}, u)$, más el de todos los niveles restantes tratados como una sola clase, $\varphi(u, 256)$. Se elige el candidato de mayor puntaje y los empates se resuelven al azar con una semilla. El costo total es $O(kL)$.
+El Greedy construye los umbrales de izquierda a derecha (Figura~\ref{fig:greedy}). Para elegir el umbral $t_i$, prueba cada candidato $u$ entre $t_{i-1} + 1$ y $254 - k + i$; esta cota superior deja espacio para los $k - i$ umbrales restantes, por lo que la solución es factible por construcción. Cada candidato se puntúa con el aporte de la clase que cierra, $\varphi(t_{i-1}, u)$, más el de todos los niveles restantes tratados como una sola clase, $\varphi(u, 256)$. Se elige el candidato de mayor puntaje y los empates se resuelven al azar con una semilla. El costo total es $O(kL)$.
 
-El puntaje se definió tras dos intentos fallidos. Puntuar solo la clase que se cierra ignora el efecto sobre el resto del histograma y empuja los umbrales hacia la cola vacía de intensidades altas: las soluciones con $k = 2$, 4 y 6 tenían casi el mismo valor de $f$. Repartir de manera uniforme los niveles restantes casi no mejoró. Ambos intentos quedaban a más de un 10\,\% del óptimo, mientras que el puntaje final deja al Greedy entre un 0,2\,\% y un 5,5\,\% del óptimo en las 30 instancias (Sección~\ref{sec:resultados}).
+El puntaje se definió tras dos intentos fallidos. Puntuar solo la clase que se cierra ignora el efecto sobre el resto del histograma y empuja los umbrales hacia la cola vacía de intensidades altas. Repartir de manera uniforme los niveles restantes casi no mejoró. Ambos intentos quedaban a más de un 10\,\% del óptimo, mientras que el puntaje final deja al Greedy entre un 0,2\,\% y un 5,5\,\% del óptimo en las 30 instancias (Sección~\ref{sec:resultados}).
 
-\begin{figure}[t]
+\begin{figure}[h]
     \centering
     \fbox{\begin{minipage}{0.92\textwidth}
     \small
@@ -315,11 +315,23 @@ El puntaje se definió tras dos intentos fallidos. Puntuar solo la clase que se 
         \hspace{1.5em}\=\hspace{1.5em}\=\hspace{1.5em}\=\kill
         \nl $t_0 \leftarrow 0$\\
         \nl \kw{para} $i = 1, \dots, k$ \kw{hacer}\\
-        \nl \> \kw{para cada} $u \in \{t_{i-1}+1, \dots, 254-k+i\}$: $\;a(u) \leftarrow \varphi(t_{i-1}, u) + \varphi(u, 256)$\\
-        \nl \> $t_i \leftarrow \arg\max_u a(u)$ \hfill (empates al azar, según la semilla)\\
+        \nl \> \kw{para cada} $u \in \{t_{i-1}+1, \dots, 254-k+i\}$: $\;aporte(u) \leftarrow \varphi(t_{i-1}, u) + \varphi(u, 256)$\\
+        \nl \> $t_i \leftarrow \arg\max_u aporte(u)$ \hfill (empates al azar, según la semilla)\\
         \nl \kw{retornar} $(t_1, \dots, t_k)$
     \end{tabbing}
-    \vspace{-3mm}\hrule\vspace{2mm}
+    \vspace{-3mm}
+    \end{minipage}}
+    \caption{Pseudocódigo del Greedy.}
+    \label{fig:greedy}
+\end{figure}
+
+\subsection{Mejora: Tabu Search}
+TS parte de la solución del Greedy y la modifica durante un número fijo de iteraciones (Figura~\ref{fig:tabu}).
+
+\begin{figure}[h]
+    \centering
+    \fbox{\begin{minipage}{0.92\textwidth}
+    \small
     \textbf{TabuSearch}$(\mathbf{t}^0, T, \text{iteraciones})$\\[-2mm]
     \pcinicio
     \begin{tabbing}
@@ -337,12 +349,9 @@ El puntaje se definió tras dos intentos fallidos. Puntuar solo la clase que se 
     \end{tabbing}
     \vspace{-3mm}
     \end{minipage}}
-    \caption{Pseudocódigo del Greedy (arriba) y de Tabu Search (abajo). $\mathbf{t}[t_i \leftarrow v]$ denota la solución $\mathbf{t}$ con el umbral $i$ reemplazado por $v$.}
-    \label{fig:pseudocodigo}
+    \caption{Pseudocódigo de Tabu Search. $\mathbf{t}[t_i \leftarrow v]$ denota la solución $\mathbf{t}$ con el umbral $i$ reemplazado por $v$.}
+    \label{fig:tabu}
 \end{figure}
-
-\subsection{Mejora: Tabu Search}
-TS parte de la solución del Greedy y la modifica durante un número fijo de iteraciones (Figura~\ref{fig:pseudocodigo}, abajo).
 
 \paragraph{Movimiento y vecindario.} Un movimiento suma o resta 1 a un umbral, por lo que cada solución tiene a lo más $2k$ vecinos. Se eligió este movimiento porque es el cambio más pequeño posible en la representación entera, modifica solo las dos clases adyacentes al umbral y, como se explicó en la Sección~\ref{sec:representacion}, basta descartar los vecinos que salen de $[1, 254]$ o que repiten un umbral para mantener la factibilidad. Como el vecindario es pequeño, se evalúa completo en cada iteración, con un costo de $O(k)$ por vecino.
 
