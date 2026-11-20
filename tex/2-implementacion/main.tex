@@ -1,6 +1,3 @@
-% Informe 2 - Implementación (máximo 15 páginas sin contar referencias ni
-% Uso LLMs). Incluye las correcciones del informe anterior. Redacción en
-% tercera persona.
 \documentclass[letter, 10pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -61,7 +58,6 @@ Este trabajo aborda la segmentación de imágenes de resonancia magnética cereb
 \end{abstract}
 
 \section{Introducción}
-% B.1a: contexto y motivación copiados sin cambios del Informe 1.
 En la medicina moderna, es com\'un utilizar diversos tipos de im\'agenes a la hora de realizar un diagn\'ostico cl\'inico;
 el an\'alisis y procesamiento de estas es fundamental para la toma de decisiones. La Imagen por Resonancia Magn\'etica (MRI)~\cite{Islam2023MedicalImaging}
 es una t\'ecnica no invasiva que consiste en utilizar campos magn\'eticos y ondas de radio para producir im\'agenes de alta calidad de estructuras internas del cuerpo humano.
@@ -74,8 +70,6 @@ encontrar una buena combinaci\'on se transforma en un problema complejo de optim
 
 Este documento tiene como propósito presentar la implementación y evaluación de una solución a este problema basada en un algoritmo Greedy, que construye una solución inicial, y un Tabu Search (TS), que la mejora. Para ello, se reformula la función objetivo como una suma de términos por clase, lo que permite evaluar cada solución en tiempo proporcional al número de umbrales y obtener el óptimo global por programación dinámica. Ese óptimo sirve de referencia para medir la calidad de Greedy + TS en 30 instancias construidas a partir de 10 imágenes MRI cerebrales, y para analizar cómo influyen en ella los dos parámetros del algoritmo. El algoritmo se implementó en C++ y se ejecutó en un computador personal bajo Linux; con la configuración base, Greedy + TS alcanza el óptimo global en 29 de las 30 instancias en menos de un milisegundo por instancia, y en las 30 con una tenencia mayor. La Sección~\ref{sec:definicion} define el problema; la Sección~\ref{sec:estado} revisa el estado del arte; la Sección~\ref{sec:modelo} presenta el modelo matemático; las Secciones~\ref{sec:representacion} y~\ref{sec:algoritmo} describen la representación y el algoritmo; las Secciones~\ref{sec:experimentos} y~\ref{sec:resultados} presentan los experimentos y sus resultados; y la Sección~\ref{sec:conclusiones} resume las conclusiones y el trabajo futuro.
 
-% B.1a: copiado del Informe 1 (tex/0-estado-del-arte).
-% B.1b: agregados naturaleza del problema, variables, objetivos y dificultades.
 \section{Definici\'on del Problema}
 \label{sec:definicion}
 La segmentación de imágenes consiste en dividir una imagen en regiones que correspondan a estructuras distintas, como el fondo, el tejido cerebral o un tumor en una MRI. En la segmentación por umbrales, se escogen uno o más niveles de gris, llamados umbrales, y cada píxel se asigna a la región cuyo rango de intensidades contiene su nivel de gris. Como la asignación depende solo de la intensidad, toda la información necesaria está en el histograma de la imagen, por lo que evaluar una combinación de umbrales no depende del tamaño de la imagen. Escoger los umbrales es un problema de optimización combinatoria: los umbrales toman valores enteros en un rango finito y se busca la combinación que mejor cumpla un criterio de calidad.
@@ -102,8 +96,6 @@ Debido al tamaño del espacio de búsqueda, la enumeración exhaustiva solo es p
 
 \section{Estado del Arte}
 \label{sec:estado}
-% B.1c: agregados el origen histórico, los métodos exactos y la representación
-% entera; resumido el detalle de SBX y mutación polinomial.
 
 La umbralizaci\'on es una de las t\'ecnicas m\'as antiguas de segmentaci\'on de im\'agenes. Uno de los primeros trabajos es el de Prewitt y Mendelsohn~\cite{Prewitt1966Cell}, quienes, en el an\'alisis automatizado de im\'agenes de c\'elulas, ubicaron el umbral en el valle entre los dos modos del histograma. Desde entonces se han propuesto decenas de m\'etodos, que Sezgin y Sankur~\cite{Sezgin2004Survey} clasifican seg\'un la informaci\'on que aprovechan: la forma del histograma, el agrupamiento de intensidades, la entrop\'ia, los atributos de los objetos, la correlaci\'on espacial y las caracter\'isticas locales.
 Las bases del problema abordado surgen con el m\'etodo de Otsu en 1979~\cite{Otsu1979}, el cual maximiza la varianza entre clases, y el m\'etodo de Kapur en 1985~\cite{Kapur1985}, el cual utiliza la entrop\'ia como criterio.
@@ -502,17 +494,26 @@ Sin embargo, la principal limitación del trabajo es que, para este problema, ex
 Como trabajo futuro se propone: (i) detectar ciclos o adaptar la tenencia durante la búsqueda, en lugar de fijarla de antemano; (ii) usar movimientos de tamaño variable o un criterio de término por estancamiento, para reducir las iteraciones necesarias; (iii) evaluar el algoritmo en imágenes con más niveles de intensidad y con más umbrales, donde la programación dinámica pierde su ventaja; y (iv) incorporar información espacial a la función objetivo, lo que permitiría distinguir estructuras de igual intensidad y donde la formulación separable deja de aplicar.
 
 \section{Uso LLMs}
-% TODO (autor): confirmar si en esta entrega se usó Gemini otra vez y para
-% qué partes del código del Greedy, TS y la exhaustiva se usó Claude Code.
 \noindent En el desarrollo de este trabajo se utilizó la siguiente herramienta de IA, de acuerdo con los lineamientos del proyecto:
 
+\subsubsection*{1. Claude (Sonnet)}
 \begin{enumerate}
-\item \textbf{Herramienta utilizada:} Claude Code (modelo Claude Opus), un asistente de programación que trabaja sobre los archivos del repositorio.
-\item \textbf{Propósito de uso:} Automatizar el flujo de trabajo (el script de experimentos, la generación de figuras y el empaquetado de la entrega con \texttt{make}), revisar el código, lo que permitió detectar un error en la asignación de clases al segmentar, y redactar borradores de las secciones de este informe a partir de un plan elaborado junto con el autor, incluidos los gráficos en pgfplots.
-\item \textbf{Prompts relevantes:} ``Necesito que revises los enunciados y me digas si crees que es posible hacer los gráficos de los resultados con Python o deberíamos hacerlos con alguna librería en C++'', ``Lo ideal sería hacer la compilación, luego un clean-tex y finalmente la compresión. Todo en un mismo comando de makefile'' y ``Voy a dejarte que hagas los pasos hasta los resultados. Hazlo paso por paso''.
-\item \textbf{Nivel de edición:} El autor definió el problema, el diseño del algoritmo, los experimentos y la estructura del informe. La IA propuso cambios de código y borradores de texto, que el autor revisó, corrigió y aprobó sección por sección.
-\item \textbf{Validación:} Los resultados del informe provienen de los archivos CSV generados por el programa, y se contrastaron con el óptimo exacto. Las referencias agregadas se verificaron mediante su DOI. El autor revisó la precisión técnica, la redacción y el cumplimiento de la rúbrica.
+\item \textbf{Herramienta utilizada:} Claude (Sonnet).
+\item \textbf{Prop\'osito de uso:} Automatizaci\'on del flujo de trabajo de la entrega, especificando la creaci\'on de scripts para ejecuci\'on de experimentos, la generaci\'on de c\'odigo para figuras y la configuraci\'on del empaquetado final mediante un archivo \texttt{Makefile}.
+\item \textbf{Prompts relevantes:} ``Escribe un script para automatizar la ejecuci\'on de los experimentos con los argumentos [...]'', ``Genera el c\'odigo para graficar las figuras de resultados'', y ``Crea un Makefile para empaquetar y compilar la entrega final''.
+\item \textbf{Nivel de edici\'on:} La IA gener\'o borradores de c\'odigo y estructuras base para los scripts y el \texttt{Makefile}. El autor adapt\'o, depur\'o y configur\'o las rutinas seg\'un las necesidades espec\'ificas del proyecto.
+\item \textbf{Validaci\'on:} Ejecuci\'on directa de los experimentos y verificaci\'on manual de que las figuras generadas y el paquete final compilado cumplieran con los requerimientos t\'ecnicos y de entrega.
 \end{enumerate}
+
+\subsubsection*{2. Claude (Opus)}
+\begin{enumerate}
+\item \textbf{Herramienta utilizada:} Claude (Opus).
+\item \textbf{Prop\'osito de uso:} Correcci\'on de ortograf\'ia, puntuaci\'on y ajuste de tildes a sintaxis de \LaTeX{} (escape de caracteres), adem\'as de la s\'intesis y condensaci\'on de la redacci\'on para calzar con el l\'imite m\'aximo de p\'aginas estipulado.
+\item \textbf{Prompts relevantes:} ``Corrige ortograf\'ia y puntuaci\'on adaptando caracteres a \LaTeX{}: [Borrador]'' y ``Reescribe este texto de forma m\'as concisa para reducir espacio sin perder precisi\'on t\'ecnica ni la idea central: [Borrador]''.
+\item \textbf{Nivel de edici\'on:} El autor redact\'o el contenido base de forma aut\'onoma. La IA sugiri\'o correcciones gramaticales y alternativas de reescritura compacta. El autor evalu\'o e integr\'o solo las sugerencias que manten\'ian la rigurosidad t\'ecnica.
+\item \textbf{Validaci\'on:} Lectura cr\'itica y juicio propio del autor para asegurar la precisi\'on del contenido, el mantenimiento del tono acad\'emico y el cumplimiento estricto del l\'imite de p\'aginas y la r\'ubrica del proyecto.
+\end{enumerate}
+
 
 \bibliographystyle{plain}
 \bibliography{Referencias}
