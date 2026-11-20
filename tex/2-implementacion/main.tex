@@ -1,7 +1,6 @@
-% Informe 2 - Implementación (máximo 15 páginas sin contar referencias).
-% Debe incluir las correcciones del informe anterior solicitadas por la
-% ayudante y la respuesta a cada aspecto de la Retroalimentación del Estado
-% de Avance (indicando qué fue solicitado). Redacción en tercera persona.
+% Informe 2 - Implementación (máximo 15 páginas sin contar referencias ni
+% Uso LLMs). Incluye las correcciones del informe anterior. Redacción en
+% tercera persona.
 \documentclass[letter, 10pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -58,7 +57,7 @@ Bibliograf\'ia (5 \%): & \underline{\hspace{2cm}}\\
 \vspace{2cm}
 
 \begin{abstract}
-% TODO
+Este trabajo aborda la segmentación de imágenes de resonancia magnética cerebral mediante umbralización multinivel: se buscan los $k$ umbrales de intensidad que dividen el histograma de la imagen en clases lo más separadas posible, lo que se mide con la varianza entre clases de Otsu. Como el número de combinaciones de umbrales crece rápidamente con $k$, se implementó en C++ un algoritmo Greedy que construye una solución inicial y un Tabu Search que la mejora. El algoritmo se evaluó en 30 instancias, con $k \in \{2, 4, 6\}$, frente al óptimo global obtenido por programación dinámica, y se estudió el efecto de la tenencia y del número de iteraciones. Greedy + TS alcanza el óptimo en 29 de las 30 instancias con la configuración base, y en las 30 con una tenencia mayor, en menos de un milisegundo por instancia.
 \end{abstract}
 
 \section{Introducción}
@@ -73,13 +72,12 @@ por lo que resulta tremendamente eficaz para dividir una imagen en diferentes re
 Sin embargo, cuando se utilizan varios umbrales con el fin de reconocer varias estructuras,
 encontrar una buena combinaci\'on se transforma en un problema complejo de optimizaci\'on.
 
-% TODO (B.8): propósito y contribución (implementación de Greedy + TS,
-% comparación con el óptimo exacto, análisis de sensibilidad), entorno
-% experimental, resultados y estructura del documento.
+Este documento tiene como propósito presentar la implementación y evaluación de una solución a este problema basada en un algoritmo Greedy, que construye una solución inicial, y un Tabu Search (TS), que la mejora. Su contribución es triple: una formulación separable de la función objetivo, que permite evaluar cada solución en tiempo proporcional al número de umbrales y calcular el óptimo global por programación dinámica; la medición de la calidad de Greedy + TS frente a ese óptimo en 30 instancias construidas a partir de 10 imágenes MRI cerebrales; y un análisis de la sensibilidad del algoritmo a sus dos parámetros. La Sección~\ref{sec:definicion} define el problema; la Sección~\ref{sec:estado} revisa el estado del arte; la Sección~\ref{sec:modelo} presenta el modelo matemático; las Secciones~\ref{sec:representacion} y~\ref{sec:algoritmo} describen la representación y el algoritmo; las Secciones~\ref{sec:experimentos} y~\ref{sec:resultados} presentan los experimentos y sus resultados; y la Sección~\ref{sec:conclusiones} resume las conclusiones y el trabajo futuro.
 
 % B.1a: copiado del Informe 1 (tex/0-estado-del-arte).
 % B.1b: agregados naturaleza del problema, variables, objetivos y dificultades.
 \section{Definici\'on del Problema}
+\label{sec:definicion}
 La segmentación de imágenes consiste en dividir una imagen en regiones que correspondan a estructuras distintas. En la segmentación por umbrales, esta división se hace únicamente según la intensidad de cada píxel: se escogen uno o más niveles de gris, llamados umbrales, y cada píxel se asigna a la región cuyo rango de intensidades contiene su nivel de gris. Como la asignación depende solo de la intensidad, toda la información necesaria está contenida en el histograma de la imagen, que indica cuántos píxeles tiene cada nivel de gris; por esto, el costo de evaluar una combinación de umbrales no depende del tamaño de la imagen. El resultado es una imagen dividida en regiones de intensidad que, en una MRI cerebral, pueden aproximar estructuras como el fondo, el tejido cerebral o un tumor. Escoger los umbrales es un problema de optimización combinatoria: los umbrales toman valores enteros dentro de un rango finito, el número de combinaciones posibles crece rápidamente con la cantidad de umbrales, y se busca la combinación que mejor cumpla un criterio de calidad.
 
 La segmentaci\'on de im\'agenes a trav\'es de umbrales es un amplio tipo de problema:
@@ -103,6 +101,7 @@ Se utilizan 10 im\'agenes diferentes provenientes del conjunto de datos \textit{
 Debido al tamaño del espacio de búsqueda, la enumeración exhaustiva solo es práctica con pocos umbrales. Esto motiva el uso de metaheur\'isticas, las cuales permiten escapar de \'optimos locales y obtener soluciones cercanas al \'optimo en un tiempo razonable, aunque sin garantizar el \'optimo global~\cite{Hammouche2010Comparative, Lameesa2024Role}. Sin embargo, el criterio de Otsu puede escribirse como una suma de términos que dependen solo de los extremos de cada clase, lo que permite calcular el óptimo exacto mediante programación dinámica~\cite{Fisher1958Grouping, Luessi2009Framework} (Sección~\ref{sec:modelo}). En este trabajo, ese óptimo se utiliza como referencia para medir la calidad de las soluciones obtenidas por la metaheurística.
 
 \section{Estado del Arte}
+\label{sec:estado}
 % B.1c: agregados el origen histórico, los métodos exactos y la representación
 % entera; resumido el detalle de SBX y mutación polinomial.
 
@@ -477,40 +476,29 @@ La Figura~\ref{fig:segmentaciones} muestra una de las imágenes segmentada con d
 Hammouche et al.~\cite{Hammouche2010Comparative} reportan, para el criterio de Otsu en seis imágenes de $256 \times 256$ y 50 ejecuciones por método, que GA, PSO y DE alcanzan el óptimo en casi todos los casos hasta 4 umbrales, mientras que su TS solo lo alcanza de forma consistente con un umbral: desde 2 umbrales, su valor medio difiere del óptimo en las seis imágenes. En este trabajo, en cambio, Greedy + TS alcanza el óptimo en 29 de 30 instancias con la configuración base, y en las 30 con $T \geq 20$, con hasta 6 umbrales. Aunque las imágenes difieren y la comparación no es directa, la diferencia de comportamiento sugiere que el desempeño de TS depende fuertemente de su diseño: aquí la búsqueda parte de una solución Greedy cercana al óptimo, evalúa el vecindario completo en cada iteración gracias a la evaluación en $O(k)$, y su memoria crece con $k$. Por otro lado, el estudio citado no reporta resultados para más de 4 umbrales, por lo que no es posible comparar el caso $k = 6$.
 
 \section{Conclusiones}
-% TODO
+\label{sec:conclusiones}
+Este trabajo abordó la segmentación multiumbral de imágenes MRI cerebrales mediante el criterio de Otsu, que busca los $k$ umbrales que maximizan la varianza entre clases del histograma. Se implementó un Greedy que construye la solución umbral a umbral y un Tabu Search que la mejora con movimientos de $\pm 1$ nivel de gris, una lista tabú de tamaño $k + T$ y un criterio de aspiración. Gracias a la formulación separable, cada solución se evalúa en $O(k)$, lo que permite recorrer el vecindario completo en cada iteración, y el óptimo global de cada instancia puede calcularse por programación dinámica, lo que permitió medir la calidad del algoritmo de forma exacta en las 30 instancias.
 
-\section{Retroalimentación}
-\label{sec:retro}
+El Greedy por sí solo es muy rápido, pero insuficiente: su brecha llega al 5,5\,\% y crece con $k$, porque no puede corregir los umbrales ya fijados. Greedy + TS, en cambio, alcanza el óptimo global en 29 de las 30 instancias con la configuración base, y en las 30 con $T \geq 20$ y al menos 500 iteraciones. La experimentación mostró que cada parámetro cumple un papel distinto: las iteraciones deben bastar para que los umbrales recorran, de a un nivel de gris, la distancia entre la solución del Greedy y el óptimo, por lo que con menos de 500 iteraciones la calidad cae fuertemente; la tenencia, por su parte, decide si TS escapa de los óptimos locales. El caso de \texttt{imagen\_10\_k6} lo muestra con claridad: con $T = 10$ la búsqueda queda atrapada en un ciclo de 110 iteraciones, mientras que con $T = 20$ lo evita y alcanza el óptimo. Por lo tanto, la configuración base elegida durante el desarrollo no es la mejor: $T = 20$ con 500 iteraciones obtiene mejores resultados con la mitad del trabajo.
 
-\paragraph{Retroalimentación -- Estado de avance.} Se señaló un aspecto: \emph{``Lo que te faltó en la presentación fue mostrar el código en la ppt, lo supiste explicar bien cuando te pregunté, pero no la incluiste''}. \textbf{Respuesta:} la presentación final incluirá fragmentos del código de las partes clave: la evaluación de $f$ con sumas acumuladas, el Greedy, la generación de vecinos, la lista tabú y el criterio de aspiración. Este informe no incluye código, según lo indicado en la plantilla; el código fuente documentado se entrega en la carpeta del código. Además, en el avance se declararon tres tareas pendientes, abordadas como sigue: (i) \emph{extender las pruebas}: se pasó de una ejecución por instancia a 1.440 ejecuciones, con 48 configuraciones de parámetros sobre las 30 instancias (Sección~\ref{sec:experimentos}); (ii) \emph{las 7 instancias con $k = 6$ sin óptimo conocido}: se obtuvo el óptimo exacto de las 30 instancias mediante programación dinámica (Sección~\ref{sec:separable}); y (iii) \emph{la sensibilidad a $T$ y a las iteraciones}: se estudia en la Sección~\ref{sec:resultados}.
+Estos resultados contrastan con la Entrega 1, que, a partir de lo reportado por Hammouche et al.~\cite{Hammouche2010Comparative}, consideraba a los algoritmos poblacionales como el punto de partida natural, ya que el TS de ese estudio no lograba escapar de los óptimos locales. Aquí, un TS con una buena solución inicial, evaluación eficiente y memoria proporcional a $k$ alcanzó el óptimo con hasta 6 umbrales. Esto sugiere que el diseño del método (la solución inicial, el vecindario y el tamaño de la memoria) influye tanto en el desempeño como la elección de la metaheurística.
 
-\paragraph{Retroalimentación -- Informe 1.} La copia física con las anotaciones de la ayudante se extravió. La ayudante facilitó el puntaje obtenido en cada ítem de la rúbrica, y se tomó como guía cada ítem con puntaje menor a 5. La Tabla~\ref{tab:retro} resume cada uno y el cambio realizado. Además, el autor corrigió el título, que carecía de tildes, y el formato del rol.
+Sin embargo, la principal limitación del trabajo es que, para este problema, existe un método exacto igual de rápido: con 256 niveles y $k \leq 6$, la programación dinámica obtiene el óptimo en unos 0,5\,ms, un tiempo similar al de TS. Por ello, para el criterio de Otsu en imágenes de 8 bits, la metaheurística no ofrece ventajas frente al método exacto. Su aporte está en los casos donde este deja de ser práctico: el costo de la programación dinámica, $O(kL^2)$, crece con el cuadrado del número de niveles $L$, por lo que se vuelve costosa en imágenes de 12 o 16 bits, mientras que el costo por iteración de TS no depende de $L$; además, la programación dinámica requiere que la función objetivo se descomponga en una suma de términos por clase, mientras que TS solo necesita poder evaluarla. Por otra parte, los resultados muestran que la calidad de la función objetivo no garantiza una buena segmentación clínica: una brecha de 0,22\,\% produce segmentaciones visiblemente distintas, y, como solo se usa el histograma, el tumor y el cráneo, de intensidades similares, quedan en la misma clase.
 
-\begin{table}[h]
-    \centering
-    \small
-    \begin{tabular}{>{\raggedright\arraybackslash}p{3.2cm} c >{\raggedright\arraybackslash}p{8.6cm}}
-        \hline
-        Ítem de la rúbrica & Puntaje & Cambio en este informe \\
-        \hline
-        Dificultades del problema & 1/5 & Párrafo \emph{Dificultades}: tamaño del espacio, óptimos locales, zonas planas y clases vacías, y calidad estadística frente a clínica. \\
-        Objetivos del problema & 2/5 & Párrafo \emph{Objetivos}, enunciados en palabras y sin fórmulas. \\
-        Modelo propio & 2/5 & Formulación separable (Sección~\ref{sec:separable}), que fundamenta la evaluación en $O(k)$ y el óptimo exacto. \\
-        Origen histórico & 2/5 & Párrafo inicial del Estado del arte, desde Prewitt y Mendelsohn (1966)~\cite{Prewitt1966Cell} y la clasificación de Sezgin y Sankur~\cite{Sezgin2004Survey}. \\
-        Propósito del documento & 3/5 & La Introducción explicita el propósito y la contribución de este informe. \\
-        Naturaleza del problema & 3/5 & Párrafo inicial de la Definición del problema: qué es umbralizar, el histograma y por qué es optimización combinatoria. \\
-        Variables & 4/5 & Párrafo \emph{Parámetros y variables}, en palabras. \\
-        Representaciones & 4/5 & Se agrega la representación entera y por qué es la más adecuada. \\
-        Resumen del problema & 4/5 & El Resumen explica qué se busca: los umbrales que maximizan la varianza entre clases en MRI. \\
-        \hline
-    \end{tabular}
-    \caption{Ítems del Informe 1 con puntaje menor a 5 y cambios realizados.}
-    \label{tab:retro}
-\end{table}
+Como trabajo futuro se propone: (i) detectar ciclos o adaptar la tenencia durante la búsqueda, en lugar de fijarla de antemano; (ii) usar movimientos de tamaño variable o un criterio de término por estancamiento, para reducir las iteraciones necesarias; (iii) evaluar el algoritmo en imágenes con más niveles de intensidad y con más umbrales, donde la programación dinámica pierde su ventaja; y (iv) incorporar información espacial a la función objetivo, lo que permitiría distinguir estructuras de igual intensidad y donde la formulación separable deja de aplicar.
 
 \section{Uso LLMs}
-% TODO: herramienta, propósito, prompts relevantes, nivel de edición y
-% validación, de acuerdo con los lineamientos del proyecto.
+% TODO (autor): confirmar si en esta entrega se usó Gemini otra vez y para
+% qué partes del código del Greedy, TS y la exhaustiva se usó Claude Code.
+\noindent En el desarrollo de este trabajo se utilizó la siguiente herramienta de IA, de acuerdo con los lineamientos del proyecto:
+
+\begin{enumerate}
+\item \textbf{Herramienta utilizada:} Claude Code (modelo Claude Opus), un asistente de programación que trabaja sobre los archivos del repositorio.
+\item \textbf{Propósito de uso:} Automatizar el flujo de trabajo (el script de experimentos, la generación de figuras y el empaquetado de la entrega con \texttt{make}), revisar el código, lo que permitió detectar un error en la asignación de clases al segmentar, y redactar borradores de las secciones de este informe a partir de un plan elaborado junto con el autor, incluidos los gráficos en pgfplots.
+\item \textbf{Prompts relevantes:} ``Necesito que revises los enunciados y me digas si crees que es posible hacer los gráficos de los resultados con Python o deberíamos hacerlos con alguna librería en C++'', ``Lo ideal sería hacer la compilación, luego un clean-tex y finalmente la compresión. Todo en un mismo comando de makefile'' y ``Voy a dejarte que hagas los pasos hasta los resultados. Hazlo paso por paso''.
+\item \textbf{Nivel de edición:} El autor definió el problema, el diseño del algoritmo, los experimentos y la estructura del informe. La IA propuso cambios de código y borradores de texto, que el autor revisó, corrigió y aprobó sección por sección.
+\item \textbf{Validación:} Los resultados del informe provienen de los archivos CSV generados por el programa, y se contrastaron con el óptimo exacto. Las referencias agregadas se verificaron mediante su DOI. El autor revisó la precisión técnica, la redacción y el cumplimiento de la rúbrica.
+\end{enumerate}
 
 \bibliographystyle{plain}
 \bibliography{Referencias}
