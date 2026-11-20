@@ -370,7 +370,7 @@ Los experimentos buscan responder cuatro preguntas: (i) qué tan cerca del ópti
 
 \paragraph{Instancias.} Se usan 10 imágenes MRI cerebrales del \textit{Brain Tumor Dataset}~\cite{Cheng2017BrainTumor}, de $512 \times 512$ píxeles. Cada una se convierte a escala de grises, se reduce a $256 \times 256$ píxeles promediando áreas y se guarda con 8 bits de profundidad. Una instancia es el histograma de 256 niveles de una imagen junto con un valor de $k \in \{2, 4, 6\}$, lo que da 30 instancias. Las imágenes comparten una estructura similar: cerca del 28\,\% de los píxeles corresponde al fondo negro (nivel 0) y tienen entre 12 y 36 niveles sin píxeles. La dificultad de cada instancia crece con $k$, según el tamaño del espacio de búsqueda de la Tabla~\ref{tab:espacio}.
 
-\paragraph{Referencia de calidad.} El óptimo global $f^*$ de cada instancia se calcula mediante programación dinámica (Sección~\ref{sec:separable}). Se verificó que coincide, en umbrales y valor, con la búsqueda exhaustiva en las 23 instancias en que esta se ejecutó (todas las de $k \leq 4$ y tres de $k = 6$).
+\paragraph{Referencia de calidad.} El óptimo global $f^*$ de cada instancia se calcula mediante programación dinámica (Sección~\ref{sec:separable}). Para comprobar la implementación, se comparó con una búsqueda exhaustiva por backtracking, que evalúa todas las combinaciones de umbrales; por su costo, solo se ejecutó en 23 instancias (todas las de $k \leq 4$ y tres de $k = 6$), y en todas ambas entregaron los mismos umbrales y valor.
 
 \paragraph{Indicadores.} Para cada ejecución se registran el valor $f$ de la solución, la brecha respecto del óptimo, $100\,(f^* - f)/f^*$ (en \%), y el tiempo de cada etapa. Se considera que una ejecución alcanza el óptimo si su brecha es menor que $10^{-9}$\,\%.
 
@@ -405,7 +405,7 @@ La Tabla~\ref{tab:base} resume los resultados con $T = 10$ y 1.000 iteraciones. 
     \label{tab:base}
 \end{table}
 
-En cuanto al tiempo, el Greedy tarda unos pocos microsegundos y TS menos de 0,5\,ms por instancia, un tiempo que crece con $k$, ya que aumentan tanto el número de vecinos ($2k$) como el costo de evaluar cada uno ($O(k)$). Como referencia, la búsqueda exhaustiva por backtracking tardaba unos 4\,s por instancia con $k = 4$ y no era práctica con $k = 6$, mientras que la programación dinámica obtiene el óptimo exacto en menos de 0,5\,ms, un tiempo similar al de TS para estos tamaños.
+En cuanto al tiempo, el Greedy tarda unos pocos microsegundos y TS menos de 0,5\,ms por instancia, un tiempo que crece con $k$, ya que aumentan tanto el número de vecinos ($2k$) como el costo de evaluar cada uno ($O(k)$). Como referencia, la búsqueda exhaustiva por backtracking tarda unos 4\,s por instancia con $k = 4$ y no es práctica con $k = 6$, mientras que la programación dinámica obtiene el óptimo exacto en menos de 0,5\,ms, un tiempo similar al de TS para estos tamaños.
 
 \subsection{Sensibilidad a la tenencia y a las iteraciones}
 La Figura~\ref{fig:sensibilidad} muestra cuántas de las 30 instancias alcanzan el óptimo en cada configuración. Las iteraciones son el factor más importante: con 50 o 100 iteraciones solo se alcanzan las 10 instancias de $k = 2$, y con 200, 20 instancias. Esto se explica por el movimiento de $\pm 1$: cada iteración desplaza un umbral en un solo nivel de gris, por lo que llevar los umbrales desde la solución del Greedy hasta el óptimo requiere cientos de iteraciones. Desde 500 iteraciones, agregar más no cambia ningún resultado.
