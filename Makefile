@@ -36,7 +36,7 @@ CODIGO = Makefile README.md .clang-format src scripts
 PREPROCESADO_STAMP := $(DATA_PREPROCESADO)/.generado
 IMAGENES_ORIGINALES := $(wildcard $(DATA_ORIGINAL)/*.jpg $(DATA_ORIGINAL)/*.jpeg)
 
-.PHONY: all programas preprocesado run run-exhaustiva run-compare experimentos figuras entrega clean clean-datos distclean help \
+.PHONY: all programas preprocesado run run-exhaustiva run-compare experimentos figuras entrega entrega-only clean clean-datos distclean help \
 	pdf pdf-estado-del-arte pdf-avance pdf-implementacion pdf-final clean-tex distclean-tex
 .SECONDEXPANSION:
 .SECONDARY: $(PROGRAMAS_OBJ)
@@ -77,8 +77,13 @@ figuras: $(BIN_DIR)/main $(BIN_DIR)/exhaustiva $(BIN_DIR)/segmentar preprocesado
 
 # Pipeline completo (instancias, experimentos, figuras e informe) y zip de la entrega.
 entrega:
+	@$(MAKE) --no-print-directory all experimentos figuras
+	@$(MAKE) --no-print-directory entrega-only
+
+# Solo informe y zip: no compila ni ejecuta algoritmos; usa los CSV y figuras ya generados.
+entrega-only:
 	$(RM) $(INFORME_DIR)/main.pdf
-	@$(MAKE) --no-print-directory all experimentos figuras pdf-implementacion clean-tex
+	@$(MAKE) --no-print-directory pdf-implementacion clean-tex
 	$(RM) -r $(ENTREGA_DIR) $(ENTREGA).zip
 	mkdir -p $(ENTREGA_DIR)/informe $(ENTREGA_DIR)/codigo/data
 	cp -r $(INFORME_DIR)/. $(ENTREGA_DIR)/informe/
@@ -122,6 +127,7 @@ help:
 	@echo "make experimentos   Grilla de T e iteraciones sobre las 30 instancias (CSV)"
 	@echo "make figuras        Imagenes segmentadas para el informe"
 	@echo "make entrega        Pipeline completo + zip con informe/ y codigo/"
+	@echo "make entrega-only   Solo informe + zip, sin ejecutar algoritmos"
 	@echo "make clean          Elimina lo compilado"
 	@echo "make clean-datos    Elimina las instancias generadas"
 	@echo "make distclean      clean + clean-datos"
